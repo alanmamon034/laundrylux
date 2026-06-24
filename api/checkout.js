@@ -1,4 +1,4 @@
-// LaundryLux — Whop Checkout API (corrected endpoint)
+// LaundryLux — Whop Checkout API
 
 const WHOP_API_KEY = 'apik_5MivInB9jDWFn_C4727877_C_f04f1c7f9facb97428aa69e97d85a2383d132a50964f4c69651f82d4395f02';   // ← paste your key here
 const WHOP_COMPANY_ID = 'prod_jYBYrRcabsFEa';  // ← paste your biz_xxxxxxx here
@@ -22,8 +22,7 @@ export default async function handler(req, res) {
 
     const origin = req.headers.origin || 'https://laundrylux.vercel.app';
 
-    // Correct Whop API: create a checkout configuration with inline plan
-    const response = await fetch('https://api.whop.com/api/v2/checkout_configurations', {
+    const whopRes = await fetch('https://api.whop.com/api/v2/checkout_configurations', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${WHOP_API_KEY}`,
@@ -41,22 +40,42 @@ export default async function handler(req, res) {
           product_id: String(productId),
           product_name: productName,
           customer_name: customerName,
-          customer_phone: customerPhone,
-          delivery_address: deliveryAddress,
+          customer_phone: customerPhone || '',
+          delivery_address: deliveryAddress || '',
           customer_email: customerEmail,
         },
       }),
     });
 
-    const data = await response.json();
+    // Get raw text first so we can log it if JSON parse fails
+    const rawText = await whopRes.text();
+    console.log('Whop response status:', whopRes.status);
+    console.log('Whop raw response:', rawText);
 
-    if (!response.ok) {
-      console.error('Whop API error:', JSON.stringify(data));
-      return res.status(500).json({ error: data.message || data.error || 'Could not create checkout.' });
+    let data;
+    try {
+      data = JSON.parse(rawText);
+    } catch (e) {
+      return res.status(500).json({ error: `Whop returned invalid response: ${rawText.slice(0, 200)}` });
     }
 
-    // Whop returns purchase_url — redirect customer there to pay
+    if (!whopRes.ok) {
+      // Extract the most useful error message from Whop's response
+      const errMsg =
+        data?.message ||
+        data?.error ||
+        data?.errors?.[0]?.message ||
+        data?.detail ||
+        JSON.stringify(data);
+      console.error('Whop error:', errMsg);
+      return res.status(500).json({ error: `Whop: ${errMsg}` });
+    }
+
     const checkoutUrl = data.purchase_url || `https://whop.com/checkout/${data.plan?.id}`;
+
+    if (!checkoutUrl) {
+      return res.status(500).json({ error: 'No checkout URL returned by Whop. Response: ' + JSON.stringify(data) });
+    }
 
     return res.status(200).json({
       success: true,
@@ -66,6 +85,6 @@ export default async function handler(req, res) {
 
   } catch (err) {
     console.error('Server error:', err);
-    return res.status(500).json({ error: 'Unexpected server error. Please try again.' });
+    return res.status(500).json({ error: err.message || 'Unexpected server error.' });
   }
 }
