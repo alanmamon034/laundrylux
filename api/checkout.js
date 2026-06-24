@@ -2,14 +2,6 @@
 
 const WHOP_API_KEY = 'apik_Y5zaCQi0QkhfI_C4727877_C_38c497d77d59ce558830c51d35fa0b1e9aba8ddc6fe0a64be3af590323c93a'; // ← paste your key here
 
-// Product map — Whop purchase URLs per product ID
-// To get a purchase URL: Whop Dashboard → Products → click product → "Share" or view the product page
-// The purchase URL looks like: https://whop.com/checkout/plan_xxxxxxxxx
-const PRODUCT_CHECKOUT_URLS = {
-  1: 'https://whop.com/laundrylax/lg-washer-and-dryer/?planId=plan_', // we'll fill this below
-};
-
-// We'll use the Whop API to list plans for a product and get the purchase_url
 const WHOP_PRODUCT_MAP = {
   1: 'prod_jYBYrRcabsFEa', // LG Washer & Dryer
 };
@@ -28,13 +20,11 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Name and email are required.' });
     }
 
-    // Get the Whop product ID for this store product
     const whopProductId = WHOP_PRODUCT_MAP[productId];
     if (!whopProductId) {
       return res.status(400).json({ error: 'Product not found.' });
     }
 
-    // Fetch plans for this product to get the purchase_url
     const plansRes = await fetch(`https://api.whop.com/api/v2/plans?product_id=${whopProductId}&expand[]=product`, {
       headers: {
         'Authorization': `Bearer ${WHOP_API_KEY}`,
@@ -42,40 +32,39 @@ export default async function handler(req, res) {
       },
     });
 
-    const rawText = await plansRes.text();
-    console.log('Plans status:', plansRes.status);
-    console.log('Plans response:', rawText);
-
-    let plansData;
-    try { plansData = JSON.parse(rawText); } catch(e) {
-      return res.status(500).json({ error: rawText.slice(0, 500) });
-    }
+    const plansData = await plansRes.json();
 
     if (!plansRes.ok) {
-      return res.status(500).json({ error: rawText });
+      return res.status(500).json({ error: JSON.stringify(plansData) });
     }
 
-    // Get first plan's purchase_url
-    const plans = plansData.data || plansData;
-    const plan = Array.isArray(plans) ? plans[0] : null;
+    const plan = plansData.data?.[0];
 
-    if (!plan || !plan.purchase_url) {
-      return res.status(500).json({ error: 'No plan found for this product. Response: ' + rawText });
+    if (!plan) {
+      return res.status(500).json({ error: 'No plan found for this product.' });
     }
 
-    // Log customer details for order fulfillment
-    console.log('ORDER:', {
+    // Use direct_link (Whop's checkout URL for this plan)
+    const checkoutUrl = plan.purchase_url || plan.direct_link;
+
+    if (!checkoutUrl) {
+      return res.status(500).json({ error: 'No checkout URL found on plan.' });
+    }
+
+    // Log order details for fulfillment
+    console.log('NEW ORDER:', {
       product: productName,
       customer: customerName,
       email: customerEmail,
       phone: customerPhone,
       address: deliveryAddress,
       plan_id: plan.id,
+      amount: plan.initial_price,
     });
 
     return res.status(200).json({
       success: true,
-      checkout_url: plan.purchase_url,
+      checkout_url: checkoutUrl,
       plan_id: plan.id,
     });
 
