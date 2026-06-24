@@ -1,8 +1,8 @@
 // LaundryLux — Whop Checkout API
 // Vercel serverless function — runs on the server, API key never exposed to browser
 
-const WHOP_API_KEY = 'YOUR_WHOP_API_KEY_HERE'; // ← paste your real key here
-const WHOP_COMPANY_ID = 'YOUR_COMPANY_ID_HERE'; // ← paste your biz_xxxxxxx here
+const WHOP_API_KEY = 'apik_5MivInB9jDWFn_C4727877_C_f04f1c7f9facb97428aa69e97d85a2383d132a50964f4c69651f82d4395f02'; // ← paste your real key here
+const WHOP_COMPANY_ID = 'biz_95atGN85BbmlGR'; // ← paste your biz_xxxxxxx here
 
 export default async function handler(req, res) {
   // CORS preflight
