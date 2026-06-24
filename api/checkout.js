@@ -64,7 +64,7 @@ export default async function handler(req, res) {
 
     return res.status(200).json({
       success: true,
-      checkout_url: checkoutUrl,
+      checkout_url: checkoutUrl + (checkoutUrl.includes("?") ? "&" : "?") + "currency=usd",
       plan_id: plan.id,
     });
 
