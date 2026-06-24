@@ -1,6 +1,6 @@
 // LaundryLux — Whop Checkout API
 
-const WHOP_API_KEY = 'apik_5MivInB9jDWFn_C4727877_C_f04f1c7f9facb97428aa69e97d85a2383d132a50964f4c69651f82d4395f02'; // ← paste your key here
+const WHOP_API_KEY = 'apik_Y5zaCQi0QkhfI_C4727877_C_38c497d77d59ce558830c51d35fa0b1e9aba8ddc6fe0a64be3af590323c93a'; // ← paste your key here
 
 // Product map — Whop purchase URLs per product ID
 // To get a purchase URL: Whop Dashboard → Products → click product → "Share" or view the product page
