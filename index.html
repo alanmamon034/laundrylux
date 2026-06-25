@@ -616,6 +616,7 @@ function renderProducts() {
           <div class="card-footer">
             <div class="card-price">$${p.price.toLocaleString()} <span>USD</span></div>
             <button class="add-to-cart" id="btn-${p.id}" onclick="openEnquire(${p.id})">Chat to Buy 💬</button>
+          <button class="add-to-cart" style="background:var(--green);margin-top:8px;width:100%" onclick="openPayProof(${p.id})">I've Paid — Upload Proof ✓</button>
           </div>
         </div>
       </div>
@@ -719,20 +720,39 @@ let proofBase64 = '';
 
 function openEnquire(id) {
   currentProduct = products.find(p => p.id === id);
+  // Just open Tawk.to chat — agent will handle payment details
+  // Open Tawk.to using onLoad callback to ensure it's ready
+  function openTawk() {
+    try {
+      if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
+        window.Tawk_API.maximize();
+      } else if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') {
+        window.Tawk_API.toggle();
+      }
+    } catch(e) {}
+  }
+  if (window.Tawk_API && window.Tawk_API.onLoad) {
+    window.Tawk_API.onLoad = openTawk;
+  }
+  openTawk();
+  showToast('Opening chat... 💬');
+}
 
-  // Set product info
+function openPayProof(id) {
+  currentProduct = products.find(p => p.id === id);
+
+  // Set product info in modal
   document.getElementById('pay-product-name').textContent = currentProduct.name;
   document.getElementById('pay-product-price').textContent = '$' + currentProduct.price.toLocaleString() + ' USD';
 
-  // Product image
   const imgWrap = document.getElementById('pay-product-img');
   if (currentProduct.images && currentProduct.images.length) {
-    imgWrap.innerHTML = `<img src="${currentProduct.images[0]}" class="pay-product-img" alt="${currentProduct.name}" style="width:52px;height:52px;border-radius:8px;object-fit:cover">`;
+    imgWrap.innerHTML = `<img src="${currentProduct.images[0]}" style="width:52px;height:52px;border-radius:8px;object-fit:cover" alt="${currentProduct.name}">`;
   } else {
     imgWrap.innerHTML = `<div style="width:52px;height:52px;border-radius:8px;background:#f1f0eb;display:flex;align-items:center;justify-content:center;font-size:24px">${currentProduct.emoji}</div>`;
   }
 
-  // Reset state
+  // Reset
   selectedMethod = '';
   proofBase64 = '';
   document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
@@ -744,6 +764,7 @@ function openEnquire(id) {
   document.getElementById('pay-body').style.display = 'block';
   document.getElementById('pay-preview').style.display = 'none';
   document.getElementById('pay-upload-area').classList.remove('has-file');
+  document.getElementById('pay-upload-area').querySelector('.pay-upload-text').textContent = 'Tap to upload screenshot';
   document.getElementById('pay-submit-btn').disabled = true;
   ['pay-customer-name','pay-customer-phone','pay-customer-email','pay-delivery-area'].forEach(id => {
     const el = document.getElementById(id); if(el) el.value = '';
