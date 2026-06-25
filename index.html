@@ -412,22 +412,22 @@
       <div id="pay-step1">
         <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Choose your payment method:</p>
         <div class="pay-methods">
-          <div class="pay-method" onclick="selectMethod('Zelle')">
+          <div class="pay-method" onclick="selectMethod('Zelle', this)">
             <div class="pay-method-icon">💙</div>
             <div class="pay-method-name">Zelle</div>
             <div class="pay-method-detail">Details via chat</div>
           </div>
-          <div class="pay-method" onclick="selectMethod('CashApp')">
+          <div class="pay-method" onclick="selectMethod('CashApp', this)">
             <div class="pay-method-icon">💚</div>
             <div class="pay-method-name">CashApp</div>
             <div class="pay-method-detail">Details via chat</div>
           </div>
-          <div class="pay-method" onclick="selectMethod('Chime')">
+          <div class="pay-method" onclick="selectMethod('Chime', this)">
             <div class="pay-method-icon">🟡</div>
             <div class="pay-method-name">Chime</div>
             <div class="pay-method-detail">Details via chat</div>
           </div>
-          <div class="pay-method" onclick="selectMethod('Venmo / Apple Pay')">
+          <div class="pay-method" onclick="selectMethod('Venmo / Apple Pay', this)">
             <div class="pay-method-icon">🍎</div>
             <div class="pay-method-name">Venmo / Apple Pay</div>
             <div class="pay-method-detail">Details via chat</div>
@@ -762,10 +762,10 @@ function handlePayOverlay(e) {
   if (e.target === document.getElementById('pay-overlay')) closePayModal();
 }
 
-function selectMethod(name) {
+function selectMethod(name, el) {
   selectedMethod = name;
   document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
-  event.currentTarget.classList.add('selected');
+  el.classList.add('selected');
   document.getElementById('pay-instr-title').textContent = name + ' selected ✓';
   document.getElementById('pay-instr-detail').textContent = 'Our team will send you the ' + name + ' payment details via live chat once you submit your order.';
   document.getElementById('pay-instructions').style.display = 'block';
