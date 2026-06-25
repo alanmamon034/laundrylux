@@ -205,6 +205,47 @@
   .lightbox-prev, .lightbox-next { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.15); border:none; color:#fff; font-size:24px; padding:12px 16px; border-radius:8px; cursor:pointer; }
   .lightbox-prev { left:12px; }
   .lightbox-next { right:12px; }
+
+  /* Payment modal */
+  .pay-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:300; align-items:center; justify-content:center; }
+  .pay-overlay.open { display:flex; }
+  .pay-modal { background:#fff; border-radius:16px; width:92%; max-width:440px; overflow:hidden; box-shadow:0 24px 60px rgba(0,0,0,0.2); }
+  .pay-head { background:var(--dark); color:#fff; padding:18px 22px; display:flex; align-items:center; justify-content:space-between; }
+  .pay-head h3 { font-size:16px; font-weight:700; }
+  .pay-close { background:none; border:none; color:rgba(255,255,255,0.7); font-size:20px; cursor:pointer; }
+  .pay-product { display:flex; align-items:center; gap:12px; padding:14px 20px; background:var(--off-white); border-bottom:1px solid var(--border); }
+  .pay-product-img { width:52px; height:52px; border-radius:8px; object-fit:cover; background:#e5e3de; flex-shrink:0; }
+  .pay-product-name { font-size:13px; font-weight:600; }
+  .pay-product-price { font-size:18px; font-weight:800; color:var(--accent); }
+  .pay-body { padding:20px; }
+  .pay-methods { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+  .pay-method { border:2px solid var(--border); border-radius:10px; padding:12px; text-align:center; cursor:pointer; transition:all 0.15s; }
+  .pay-method:hover { border-color:var(--accent); background:#EFF6FF; }
+  .pay-method.selected { border-color:var(--accent); background:#EFF6FF; }
+  .pay-method-icon { font-size:24px; margin-bottom:4px; }
+  .pay-method-name { font-size:12px; font-weight:600; color:var(--dark); }
+  .pay-method-detail { font-size:11px; color:var(--muted); margin-top:2px; }
+  .pay-divider { text-align:center; font-size:12px; color:var(--muted); margin:16px 0; position:relative; }
+  .pay-divider::before, .pay-divider::after { content:''; position:absolute; top:50%; width:42%; height:1px; background:var(--border); }
+  .pay-divider::before { left:0; }
+  .pay-divider::after { right:0; }
+  .pay-upload-area { border:2px dashed var(--border); border-radius:10px; padding:20px; text-align:center; cursor:pointer; transition:all 0.15s; margin-bottom:14px; }
+  .pay-upload-area:hover { border-color:var(--accent); background:#EFF6FF; }
+  .pay-upload-area.has-file { border-color:var(--green); background:#F0FDF4; }
+  .pay-upload-icon { font-size:32px; margin-bottom:8px; }
+  .pay-upload-text { font-size:13px; font-weight:600; color:var(--dark); margin-bottom:4px; }
+  .pay-upload-sub { font-size:11px; color:var(--muted); }
+  .pay-preview { width:100%; max-height:180px; object-fit:cover; border-radius:8px; margin-bottom:14px; display:none; }
+  .pay-input { width:100%; border:1.5px solid var(--border); border-radius:9px; padding:10px 13px; font-size:13px; outline:none; font-family:inherit; margin-bottom:12px; }
+  .pay-input:focus { border-color:var(--accent); }
+  .pay-submit { width:100%; background:var(--green); color:#fff; border:none; padding:14px; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer; transition:opacity 0.2s; }
+  .pay-submit:hover { opacity:0.88; }
+  .pay-submit:disabled { opacity:0.5; cursor:not-allowed; }
+  .pay-success { text-align:center; padding:32px 20px; display:none; }
+  .pay-success-icon { font-size:52px; margin-bottom:12px; }
+  .pay-success h4 { font-size:18px; font-weight:700; margin-bottom:8px; }
+  .pay-success p { font-size:13px; color:var(--muted); line-height:1.6; }
+
 </style>
 </head>
 <body>
@@ -351,6 +392,85 @@
   <button class="lightbox-next" onclick="lbNav(1);event.stopPropagation()">&#8250;</button>
 </div>
 
+
+<!-- Payment Modal -->
+<div class="pay-overlay" id="pay-overlay" onclick="handlePayOverlay(event)">
+  <div class="pay-modal">
+    <div class="pay-head">
+      <h3>Complete Purchase</h3>
+      <button class="pay-close" onclick="closePayModal()">&#x2715;</button>
+    </div>
+    <div class="pay-product">
+      <div id="pay-product-img"></div>
+      <div>
+        <div class="pay-product-name" id="pay-product-name"></div>
+        <div class="pay-product-price" id="pay-product-price"></div>
+      </div>
+    </div>
+    <div class="pay-body" id="pay-body">
+      <!-- Step 1: Choose payment method -->
+      <div id="pay-step1">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Choose your payment method:</p>
+        <div class="pay-methods">
+          <div class="pay-method" onclick="selectMethod('Zelle')">
+            <div class="pay-method-icon">💙</div>
+            <div class="pay-method-name">Zelle</div>
+            <div class="pay-method-detail">Details via chat</div>
+          </div>
+          <div class="pay-method" onclick="selectMethod('CashApp')">
+            <div class="pay-method-icon">💚</div>
+            <div class="pay-method-name">CashApp</div>
+            <div class="pay-method-detail">Details via chat</div>
+          </div>
+          <div class="pay-method" onclick="selectMethod('Chime')">
+            <div class="pay-method-icon">🟡</div>
+            <div class="pay-method-name">Chime</div>
+            <div class="pay-method-detail">Details via chat</div>
+          </div>
+          <div class="pay-method" onclick="selectMethod('Venmo / Apple Pay')">
+            <div class="pay-method-icon">🍎</div>
+            <div class="pay-method-name">Venmo / Apple Pay</div>
+            <div class="pay-method-detail">Details via chat</div>
+          </div>
+        </div>
+        <div id="pay-instructions" style="display:none;background:var(--off-white);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px">
+          <div style="font-weight:600;margin-bottom:4px" id="pay-instr-title"></div>
+          <div id="pay-instr-detail" style="color:var(--muted)"></div>
+        </div>
+        <button class="pay-submit" id="pay-next-btn" onclick="goToStep2()" style="display:none">Next — Upload Proof →</button>
+      </div>
+
+      <!-- Step 2: Upload proof -->
+      <div id="pay-step2" style="display:none">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;cursor:pointer" onclick="backToStep1()">
+          <span style="font-size:16px">←</span>
+          <span style="font-size:13px;color:var(--accent)">Change payment method</span>
+        </div>
+        <p style="font-size:13px;font-weight:600;margin-bottom:12px">Upload your payment screenshot:</p>
+        <img id="pay-preview" class="pay-preview" alt="Payment proof" />
+        <div class="pay-upload-area" id="pay-upload-area" onclick="document.getElementById('pay-file-input').click()">
+          <div class="pay-upload-icon">📸</div>
+          <div class="pay-upload-text">Tap to upload screenshot</div>
+          <div class="pay-upload-sub">JPG, PNG — your payment confirmation</div>
+        </div>
+        <input type="file" id="pay-file-input" accept="image/*" style="display:none" onchange="handleProofUpload(this)" />
+        <input class="pay-input" id="pay-customer-name" placeholder="Your full name" />
+        <input class="pay-input" id="pay-customer-phone" placeholder="Phone number" type="tel" />
+        <input class="pay-input" id="pay-customer-email" placeholder="Email address" type="email" />
+        <input class="pay-input" id="pay-delivery-area" placeholder="Delivery area / address" />
+        <button class="pay-submit" id="pay-submit-btn" onclick="submitPayment()" disabled>Submit Order</button>
+      </div>
+    </div>
+
+    <!-- Success -->
+    <div class="pay-success" id="pay-success">
+      <div class="pay-success-icon">✅</div>
+      <h4>Order Received!</h4>
+      <p>We've received your payment proof and will confirm your order shortly.<br><br>We'll contact you to arrange delivery. Thank you for shopping with <strong>LaundryLux</strong>!</p>
+    </div>
+  </div>
+</div>
+
 <!-- Checkout Drawer -->
 <div class="co-overlay" id="co-overlay" onclick="closeCheckout()"></div>
 <div class="co-drawer" id="co-drawer">
@@ -495,7 +615,7 @@ function renderProducts() {
           ${p.includes ? `<div class="card-includes">${p.includes}</div>` : ''}
           <div class="card-footer">
             <div class="card-price">$${p.price.toLocaleString()} <span>USD</span></div>
-            <button class="add-to-cart" id="btn-${p.id}" onclick="openEnquire(${p.id})">Buy Now</button>
+            <button class="add-to-cart" id="btn-${p.id}" onclick="openEnquire(${p.id})">Chat to Buy 💬</button>
           </div>
         </div>
       </div>
@@ -594,46 +714,134 @@ renderProducts(); }
 
 let currentProduct = null;
 
+let selectedMethod = '';
+let proofBase64 = '';
+
 function openEnquire(id) {
   currentProduct = products.find(p => p.id === id);
 
-  // Product summary
-  document.getElementById('co-product-name').textContent = currentProduct.name;
-  document.getElementById('co-product-price').textContent = '$' + currentProduct.price.toLocaleString() + ' USD';
-  document.getElementById('co-product-grade').textContent = gradeLabel(currentProduct.grade);
+  // Set product info
+  document.getElementById('pay-product-name').textContent = currentProduct.name;
+  document.getElementById('pay-product-price').textContent = '$' + currentProduct.price.toLocaleString() + ' USD';
 
   // Product image
-  const imgWrap = document.getElementById('co-img-wrap');
+  const imgWrap = document.getElementById('pay-product-img');
   if (currentProduct.images && currentProduct.images.length) {
-    imgWrap.innerHTML = `<img src="${currentProduct.images[0]}" class="co-product-img" alt="${currentProduct.name}">`;
+    imgWrap.innerHTML = `<img src="${currentProduct.images[0]}" class="pay-product-img" alt="${currentProduct.name}" style="width:52px;height:52px;border-radius:8px;object-fit:cover">`;
   } else {
-    imgWrap.innerHTML = `<div class="co-product-img" style="display:flex;align-items:center;justify-content:center;font-size:28px">${currentProduct.emoji}</div>`;
+    imgWrap.innerHTML = `<div style="width:52px;height:52px;border-radius:8px;background:#f1f0eb;display:flex;align-items:center;justify-content:center;font-size:24px">${currentProduct.emoji}</div>`;
   }
 
-  // Reset form & state
-  ['co-fname','co-lname','co-email','co-phone','co-address','co-area'].forEach(id => {
-    const el = document.getElementById(id);
-    if(el) { el.value=''; el.classList.remove('error'); }
+  // Reset state
+  selectedMethod = '';
+  proofBase64 = '';
+  document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
+  document.getElementById('pay-instructions').style.display = 'none';
+  document.getElementById('pay-next-btn').style.display = 'none';
+  document.getElementById('pay-step1').style.display = 'block';
+  document.getElementById('pay-step2').style.display = 'none';
+  document.getElementById('pay-success').style.display = 'none';
+  document.getElementById('pay-body').style.display = 'block';
+  document.getElementById('pay-preview').style.display = 'none';
+  document.getElementById('pay-upload-area').classList.remove('has-file');
+  document.getElementById('pay-submit-btn').disabled = true;
+  ['pay-customer-name','pay-customer-phone','pay-customer-email','pay-delivery-area'].forEach(id => {
+    const el = document.getElementById(id); if(el) el.value = '';
   });
-  document.getElementById('co-error').classList.remove('show');
-  document.getElementById('co-success').classList.remove('show');
-  document.getElementById('co-body').style.display = '';
-  document.getElementById('co-foot').style.display = '';
-  const btn = document.getElementById('co-pay-btn');
-  btn.classList.remove('loading');
-  btn.disabled = false;
 
-  // Open drawer
-  document.getElementById('co-overlay').classList.add('open');
-  document.getElementById('co-drawer').classList.add('open');
+  document.getElementById('pay-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
 
-function closeCheckout() {
-  document.getElementById('co-overlay').classList.remove('open');
-  document.getElementById('co-drawer').classList.remove('open');
+function closePayModal() {
+  document.getElementById('pay-overlay').classList.remove('open');
   document.body.style.overflow = '';
 }
+
+function handlePayOverlay(e) {
+  if (e.target === document.getElementById('pay-overlay')) closePayModal();
+}
+
+function selectMethod(name) {
+  selectedMethod = name;
+  document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+  document.getElementById('pay-instr-title').textContent = name + ' selected ✓';
+  document.getElementById('pay-instr-detail').textContent = 'Our team will send you the ' + name + ' payment details via live chat once you submit your order.';
+  document.getElementById('pay-instructions').style.display = 'block';
+  document.getElementById('pay-next-btn').style.display = 'block';
+}
+
+function goToStep2() {
+  document.getElementById('pay-step1').style.display = 'none';
+  document.getElementById('pay-step2').style.display = 'block';
+}
+
+function backToStep1() {
+  document.getElementById('pay-step1').style.display = 'block';
+  document.getElementById('pay-step2').style.display = 'none';
+}
+
+function handleProofUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    proofBase64 = e.target.result;
+    const preview = document.getElementById('pay-preview');
+    preview.src = proofBase64;
+    preview.style.display = 'block';
+    document.getElementById('pay-upload-area').classList.add('has-file');
+    document.getElementById('pay-upload-area').querySelector('.pay-upload-text').textContent = '✓ Screenshot uploaded';
+    document.getElementById('pay-submit-btn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+}
+
+function submitPayment() {
+  const name = document.getElementById('pay-customer-name').value.trim();
+  const phone = document.getElementById('pay-customer-phone').value.trim();
+  const email = document.getElementById('pay-customer-email').value.trim();
+  const area = document.getElementById('pay-delivery-area').value.trim();
+
+  if (!name || !phone) { showToast('Please enter your name and phone number.'); return; }
+  if (!proofBase64) { showToast('Please upload your payment screenshot.'); return; }
+
+  // Save order to localStorage for admin panel
+  const orders = JSON.parse(localStorage.getItem('ll_orders') || '[]');
+  orders.push({
+    id: Date.now(),
+    customerName: name,
+    customerPhone: phone,
+    customerEmail: email,
+    productName: currentProduct.name,
+    amount: currentProduct.price,
+    deliveryArea: area,
+    deliveryAddress: area,
+    paymentMethod: selectedMethod,
+    paymentProof: proofBase64,
+    status: 'paid',
+    createdAt: Date.now(),
+  });
+  localStorage.setItem('ll_orders', JSON.stringify(orders));
+
+  // Also open Tawk.to chat to notify admin
+  if (window.Tawk_API) {
+    window.Tawk_API.maximize();
+    setTimeout(() => {
+      try {
+        window.Tawk_API.setAttributes({ name: name, email: email || '' }, function(){});
+      } catch(e) {}
+    }, 500);
+  }
+
+  // Show success
+  document.getElementById('pay-body').style.display = 'none';
+  document.getElementById('pay-success').style.display = 'block';
+  showToast('Order submitted successfully!');
+}
+
+function closeCheckout() {}
 
 async function submitCheckout() {
   // Validate
