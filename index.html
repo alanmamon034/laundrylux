@@ -437,7 +437,7 @@
           <div style="font-weight:600;margin-bottom:4px" id="pay-instr-title"></div>
           <div id="pay-instr-detail" style="color:var(--muted)"></div>
         </div>
-        <button class="pay-submit" id="pay-next-btn" onclick="goToStep2()" style="display:none">Next — Upload Proof →</button>
+        <button id="pay-next-btn" onclick="goToStep2()" style="display:none;width:100%;background:var(--accent);color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px">Next — Upload Proof →</button>
       </div>
 
       <!-- Step 2: Upload proof -->
@@ -769,7 +769,11 @@ function selectMethod(name, el) {
   document.getElementById('pay-instr-title').textContent = name + ' selected ✓';
   document.getElementById('pay-instr-detail').textContent = 'Our team will send you the ' + name + ' payment details via live chat once you submit your order.';
   document.getElementById('pay-instructions').style.display = 'block';
-  document.getElementById('pay-next-btn').style.display = 'block';
+  const btn = document.getElementById('pay-next-btn');
+  btn.style.display = 'block';
+  btn.style.visibility = 'visible';
+  btn.style.opacity = '1';
+  console.log('Next button shown', btn);
 }
 
 function goToStep2() {
