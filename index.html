@@ -721,21 +721,26 @@ let proofBase64 = '';
 function openEnquire(id) {
   currentProduct = products.find(p => p.id === id);
   // Just open Tawk.to chat — agent will handle payment details
-  // Open Tawk.to using onLoad callback to ensure it's ready
-  function openTawk() {
-    try {
-      if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
-        window.Tawk_API.maximize();
-      } else if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') {
-        window.Tawk_API.toggle();
+  // Find and click the Tawk.to bubble iframe
+  try {
+    const frames = document.querySelectorAll('iframe');
+    let clicked = false;
+    frames.forEach(f => {
+      if (f.title && f.title.toLowerCase().includes('chat')) {
+        f.click(); clicked = true;
       }
-    } catch(e) {}
-  }
-  if (window.Tawk_API && window.Tawk_API.onLoad) {
-    window.Tawk_API.onLoad = openTawk;
-  }
-  openTawk();
-  showToast('Opening chat... 💬');
+    });
+    if (!clicked) {
+      // Try Tawk API methods
+      const api = window.Tawk_API;
+      if (api) {
+        if (typeof api.maximize === 'function') api.maximize();
+        else if (typeof api.toggle === 'function') api.toggle();
+        else if (typeof api.showWidget === 'function') { api.showWidget(); api.maximize(); }
+      }
+    }
+  } catch(e) { console.log(e); }
+  showToast('Chat opened — say hi! 💬');
 }
 
 function openPayProof(id) {
