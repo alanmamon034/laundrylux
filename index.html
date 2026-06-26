@@ -440,7 +440,7 @@
         <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">
           We've received your details. Open the chat below, tell us your preferred payment method and we'll send you our account details right away.
         </p>
-        <button onclick="openTawkChat()" style="background:var(--accent);color:#fff;border:none;padding:13px 28px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-bottom:12px">
+        <button onclick="openTawkChat()" style="background:var(--accent);color:#fff;border:none;padding:13px 28px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-bottom:12px" id="cf-chat-btn">
           💬 Open Chat Now
         </button>
         <p style="font-size:12px;color:var(--muted)">Once we've confirmed your payment details in chat, click <strong>Next</strong> to choose your method and upload proof.</p>
@@ -919,13 +919,29 @@ function cfSubmit() {
 }
 
 function openTawkChat() {
+  let opened = false;
   try {
-    if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
-      window.Tawk_API.maximize();
-    } else if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') {
-      window.Tawk_API.toggle();
+    // Try all known Tawk API methods
+    if (window.Tawk_API) {
+      if (typeof window.Tawk_API.maximize === 'function') { window.Tawk_API.maximize(); opened = true; }
+      else if (typeof window.Tawk_API.toggle === 'function') { window.Tawk_API.toggle(); opened = true; }
+      else if (typeof window.Tawk_API.showWidget === 'function') { window.Tawk_API.showWidget(); opened = true; }
+    }
+    // Try clicking the Tawk iframe bubble
+    if (!opened) {
+      const iframes = document.querySelectorAll('iframe');
+      iframes.forEach(f => {
+        if (f.id && f.id.toLowerCase().includes('tawk')) { f.contentWindow.document.body.click(); opened = true; }
+      });
     }
   } catch(e) {}
+
+  // Final fallback — open WhatsApp
+  if (!opened) {
+    window.open('https://wa.me/14075941735?text=' + encodeURIComponent(
+      'Hi! I am interested in ' + (cfProduct ? cfProduct.name : 'a product') + ' ($' + (cfProduct ? cfProduct.price : '') + '). Can you send me payment details?'
+    ), '_blank');
+  }
 }
 
 function closeCheckout() {}
