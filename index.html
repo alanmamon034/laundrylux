@@ -759,33 +759,40 @@ function cfSubmitAndChat() {
     "📍 " + address + (city ? ', ' + city : '') + "\n\n" +
     "Please guide me on payment method.";
 
-  // Open JivoChat and inject message
+  // Open Tawk.to
   setTimeout(() => {
     try {
-      if (window.jivo_api && typeof window.jivo_api.open === 'function') window.jivo_api.open();
+      if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
+        window.Tawk_API.maximize();
+      } else if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') {
+        window.Tawk_API.toggle();
+      }
     } catch(e) {}
 
-    setTimeout(() => {
-      try {
-        const frames = document.querySelectorAll('iframe');
-        frames.forEach(frame => {
-          try {
-            const doc = frame.contentDocument || frame.contentWindow.document;
-            const input = doc.querySelector('textarea') || doc.querySelector('[contenteditable="true"]');
-            if (input) {
-              input.focus();
-              input.value = msg;
-              input.textContent = msg;
-              input.dispatchEvent(new Event('input', {bubbles:true}));
-              input.dispatchEvent(new Event('change', {bubbles:true}));
-            }
-          } catch(e) {}
-        });
-      } catch(e) {}
-    }, 800);
-  }, 300);
+    // Show a floating message box so customer can send it
+    showChatPrompt(msg);
+  }, 400);
 
-  showToast('Chat opened! We will guide you through payment 💬');
+  showToast('Chat opened! Please send the message below 💬');
+}
+
+function showChatPrompt(msg) {
+  // Remove existing prompt if any
+  const existing = document.getElementById('chat-prompt');
+  if (existing) existing.remove();
+
+  const prompt = document.createElement('div');
+  prompt.id = 'chat-prompt';
+  prompt.style.cssText = 'position:fixed;bottom:100px;right:20px;z-index:9999;background:#fff;border-radius:14px;padding:16px;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,0.2);border:2px solid #4F46E5;font-family:-apple-system,sans-serif';
+  prompt.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="font-size:13px;font-weight:700;color:#1A1A2E">📋 Copy & paste this in chat:</div>
+      <button onclick="document.getElementById('chat-prompt').remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#6B7280">✕</button>
+    </div>
+    <div style="background:#F8F6F1;border-radius:8px;padding:10px;font-size:11px;color:#374151;line-height:1.6;margin-bottom:10px;white-space:pre-wrap;max-height:120px;overflow-y:auto">${msg}</div>
+    <button onclick="navigator.clipboard.writeText(${JSON.stringify(msg)}).then(()=>{this.textContent='✓ Copied!';this.style.background='#10B981';setTimeout(()=>{this.textContent='Copy Message';this.style.background='#4F46E5'},2000)})" style="width:100%;background:#4F46E5;color:#fff;border:none;padding:9px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Copy Message</button>
+  `;
+  document.body.appendChild(prompt);
 }
 
 function cfNext() { cfSubmitAndChat(); }
@@ -976,8 +983,19 @@ function closeLightbox(e) {
 renderProducts();
 </script>
 
-<!-- JivoChat -->
-<script src="//code.jivosite.com/widget/Zrse5P5erq" async></script>
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/6a3cf4aa6bd74a1d4622f4bb/1jrv1nf26';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->
 
 </body>
 </html>
