@@ -816,24 +816,13 @@ function closeCFandChat() {
   // Wait for modal to close then open Tawk
   setTimeout(() => {
     try {
-      // Method 1: maximize
-      if (typeof Tawk_API !== 'undefined' && Tawk_API.maximize) {
-        Tawk_API.maximize();
-        return;
+      if (window.jivo_api && typeof window.jivo_api.open === 'function') {
+        window.jivo_api.open();
+      } else {
+        const jivoBtn = document.querySelector('jdiv.__jivoMobileButton') ||
+                        document.querySelector('jdiv[class*="button"]');
+        if (jivoBtn) jivoBtn.click();
       }
-    } catch(e) {}
-    try {
-      // Method 2: click the actual Tawk iframe button
-      const tawkFrame = document.querySelector('iframe[title="chat widget"]') ||
-                        document.querySelector('iframe[src*="tawk.to"]');
-      if (tawkFrame) {
-        tawkFrame.contentWindow.postMessage('tawkMaximize', '*');
-      }
-    } catch(e) {}
-    try {
-      // Method 3: find and click the bubble div
-      const bubble = document.querySelector('[class*="tawk"]');
-      if (bubble) bubble.click();
     } catch(e) {}
   }, 300);
 }
@@ -1025,19 +1014,8 @@ function closeLightbox(e) {
 renderProducts();
 </script>
 
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/6a3cf4aa6bd74a1d4622f4bb/1jrv1nf26';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
+<!-- JivoChat -->
+<script src="//code.jivosite.com/widget/Zrse5P5erq" async></script>
 
 </body>
 </html>
