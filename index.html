@@ -461,8 +461,12 @@
           <div class="cf-method-name">Other</div>
         </div>
       </div>
-      <div id="cf-method-note" style="display:none;background:var(--off-white);border-radius:9px;padding:12px;font-size:13px;color:var(--muted)">
-        ✓ We will send you the <strong id="cf-method-name-note"></strong> details via chat right away!
+      <div id="cf-method-note" style="display:none;background:var(--off-white);border-radius:9px;padding:14px;font-size:13px">
+        <div style="font-weight:700;margin-bottom:6px;color:var(--dark)">✓ <span id="cf-method-name-note"></span> selected!</div>
+        <div style="color:var(--muted);margin-bottom:14px">The chat is now open 👇 — we will send you our <span id="cf-method-name-note2"></span> account details right away. Once you've paid, click the button below.</div>
+        <button onclick="cfShowStep(3)" style="width:100%;background:var(--green);color:#fff;border:none;padding:13px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">
+          ✅ I've Paid — Upload Proof
+        </button>
       </div>
     </div>
 
@@ -792,6 +796,7 @@ function cfShowStep(n) {
   });
   document.getElementById('cf-success').style.display = 'none';
   document.getElementById('cf-foot').style.display = 'block';
+  document.getElementById('cf-main-btn').style.display = 'block';
 
   // Step dots
   [1,2,3].forEach(i => {
@@ -837,7 +842,17 @@ function cfSelectMethod(name, el) {
   document.querySelectorAll('.cf-method').forEach(m => m.classList.remove('sel'));
   el.classList.add('sel');
   document.getElementById('cf-method-name-note').textContent = name;
+  document.getElementById('cf-method-name-note2').textContent = name;
   document.getElementById('cf-method-note').style.display = 'block';
+  // Hide the Next button — customer uses "I've Paid" button instead
+  document.getElementById('cf-main-btn').style.display = 'none';
+  // Open Tawk.to chat automatically
+  setTimeout(() => {
+    try {
+      if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') window.Tawk_API.maximize();
+      else if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') window.Tawk_API.toggle();
+    } catch(e) {}
+  }, 400);
 }
 
 function cfHandleProof(input) {
