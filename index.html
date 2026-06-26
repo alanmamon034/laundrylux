@@ -767,12 +767,27 @@ function cfNext() {
       }, function(){});
     }
   } catch(e) {}
-  // Send auto message into Tawk chat so you see what they want
+  // Pass product + customer info to Tawk as visitor attributes (shows in your dashboard)
   try {
-    if (window.Tawk_API && typeof window.Tawk_API.sendMessage === 'function') {
-      window.Tawk_API.sendMessage(
-        'Hi! I am interested in: ' + cfProduct.name + ' ($' + cfProduct.price + '). My name is ' + name + ', phone: ' + phone + ', delivery: ' + document.getElementById('cf-address').value.trim() + ' ' + document.getElementById('cf-city').value.trim()
-      );
+    if (window.Tawk_API && typeof window.Tawk_API.setAttributes === 'function') {
+      window.Tawk_API.setAttributes({
+        name: name,
+        email: document.getElementById('cf-email').value.trim() || '',
+        'Product Interest': cfProduct.name + ' - $' + cfProduct.price,
+        'Phone': phone,
+        'Delivery': document.getElementById('cf-address').value.trim() + ' ' + document.getElementById('cf-city').value.trim(),
+      }, function(){});
+    }
+  } catch(e) {}
+  // Also add a Tawk event so it shows in chat timeline
+  try {
+    if (window.Tawk_API && typeof window.Tawk_API.addEvent === 'function') {
+      window.Tawk_API.addEvent('Order Intent', {
+        product: cfProduct.name,
+        price: '$' + cfProduct.price,
+        customer: name,
+        phone: phone,
+      }, function(){});
     }
   } catch(e) {}
 
