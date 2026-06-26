@@ -438,7 +438,7 @@
       <div style="background:#EFF6FF;border-radius:10px;padding:14px;font-size:12px;color:var(--accent);font-weight:600;margin-bottom:16px">
         👇 Click the chat bubble at the bottom right to start
       </div>
-      <button onclick="closeCF()" style="width:100%;background:var(--accent);color:#fff;border:none;padding:13px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">
+      <button onclick="closeCFandChat()" style="width:100%;background:var(--accent);color:#fff;border:none;padding:13px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">
         Got it — Open Chat ✓
       </button>
     </div>
@@ -771,7 +771,36 @@ function cfNext() {
   document.getElementById('cf-foot').style.display = 'none';
 }
 
-function openTawkChat() {}
+function closeCFandChat() {
+  // Close the order modal
+  document.getElementById('cf-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  // Wait for modal to close then open Tawk
+  setTimeout(() => {
+    try {
+      // Method 1: maximize
+      if (typeof Tawk_API !== 'undefined' && Tawk_API.maximize) {
+        Tawk_API.maximize();
+        return;
+      }
+    } catch(e) {}
+    try {
+      // Method 2: click the actual Tawk iframe button
+      const tawkFrame = document.querySelector('iframe[title="chat widget"]') ||
+                        document.querySelector('iframe[src*="tawk.to"]');
+      if (tawkFrame) {
+        tawkFrame.contentWindow.postMessage('tawkMaximize', '*');
+      }
+    } catch(e) {}
+    try {
+      // Method 3: find and click the bubble div
+      const bubble = document.querySelector('[class*="tawk"]');
+      if (bubble) bubble.click();
+    } catch(e) {}
+  }, 300);
+}
+
+function openTawkChat() { closeCFandChat(); }
 function closeCheckout() {}
 
 async function submitCheckout() {
