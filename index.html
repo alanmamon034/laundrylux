@@ -425,12 +425,12 @@
       </div>
       <div style="border:1px solid var(--border);border-radius:12px;padding:16px">
         <div style="font-weight:700;font-size:15px;margin-bottom:6px">Payment</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Choose your preferred payment method — Venmo, Cash App, Apple Pay, Zelle, Chime or Visa. Our team will guide you through the next steps in the chat.</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:16px">Choose your preferred payment method — 💙 Zelle, 💚 Cash App, or 🟡 Chime. Our team will send you account details in the chat.</div>
         <button onclick="cfSubmitAndChat()" id="cf-pay-btn" style="width:100%;background:#4F46E5;color:#fff;border:none;padding:15px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
           <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
           <span id="cf-pay-btn-label">Continue to Payment</span>
         </button>
-        <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">You'll select your payment method in the chat after clicking Continue.</div>
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">Our team will send you payment details in the chat right away.</div>
       </div>
     </div>
 
@@ -823,28 +823,10 @@ function cfSubmitAndChat() {
         window.Tawk_API.toggle();
       }
     } catch(e) {}
-    showChatPrompt(msg);
   }, 600);
 }
 
-function showChatPrompt(msg) {
-  // Remove existing prompt if any
-  const existing = document.getElementById('chat-prompt');
-  if (existing) existing.remove();
-
-  const prompt = document.createElement('div');
-  prompt.id = 'chat-prompt';
-  prompt.style.cssText = 'position:fixed;bottom:100px;right:20px;z-index:9999;background:#fff;border-radius:14px;padding:16px;max-width:300px;box-shadow:0 8px 32px rgba(0,0,0,0.2);border:2px solid #4F46E5;font-family:-apple-system,sans-serif';
-  prompt.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-      <div style="font-size:13px;font-weight:700;color:#1A1A2E">📋 Copy & paste this in chat:</div>
-      <button onclick="document.getElementById('chat-prompt').remove()" style="background:none;border:none;font-size:18px;cursor:pointer;color:#6B7280">✕</button>
-    </div>
-    <div style="background:#F8F6F1;border-radius:8px;padding:10px;font-size:11px;color:#374151;line-height:1.6;margin-bottom:10px;white-space:pre-wrap;max-height:120px;overflow-y:auto">${msg}</div>
-    <button onclick="navigator.clipboard.writeText(${JSON.stringify(msg)}).then(()=>{this.textContent='✓ Copied!';this.style.background='#10B981';setTimeout(()=>{this.textContent='Copy Message';this.style.background='#4F46E5'},2000)})" style="width:100%;background:#4F46E5;color:#fff;border:none;padding:9px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer">Copy Message</button>
-  `;
-  document.body.appendChild(prompt);
-}
+// showChatPrompt removed — Tawk.to trigger handles payment options automatically
 
 function cfNext() { cfSubmitAndChat(); }
 function openTawkChat() {}
