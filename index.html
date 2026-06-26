@@ -413,9 +413,8 @@
     </div>
     <div class="cf-steps">
       <div class="cf-step-dot active" id="dot1">1. Details</div>
-      <div class="cf-step-dot" id="dot2">2. Chat</div>
-      <div class="cf-step-dot" id="dot3">3. Payment</div>
-      <div class="cf-step-dot" id="dot4">4. Proof</div>
+      <div class="cf-step-dot" id="dot2">2. Payment</div>
+      <div class="cf-step-dot" id="dot3">3. Upload Proof</div>
     </div>
 
     <!-- STEP 1: Delivery details -->
@@ -432,25 +431,10 @@
       <input class="cf-input" id="cf-city" placeholder="City / Area" />
     </div>
 
-    <!-- STEP 2: Chat with seller -->
+    <!-- STEP 2: Payment method -->
     <div class="cf-body" id="cf-step2" style="display:none">
-      <div style="text-align:center;padding:10px 0 20px">
-        <div style="font-size:52px;margin-bottom:14px">💬</div>
-        <h4 style="font-size:17px;font-weight:700;margin-bottom:10px">Chat with us now</h4>
-        <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:20px">
-          We've received your details. Open the chat below, tell us your preferred payment method and we'll send you our account details right away.
-        </p>
-        <button onclick="openTawkChat()" style="background:var(--accent);color:#fff;border:none;padding:13px 28px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;width:100%;margin-bottom:12px" id="cf-chat-btn">
-          💬 Open Chat Now
-        </button>
-        <p style="font-size:12px;color:var(--muted)">Once we've confirmed your payment details in chat, click <strong>Next</strong> to choose your method and upload proof.</p>
-      </div>
-    </div>
-
-    <!-- STEP 3: Payment method -->
-    <div class="cf-body" id="cf-step4" style="display:none">
-      <button class="cf-back" onclick="cfGo(3)">&#8592; Back</button>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Choose your preferred payment method. We will send you the account details via chat.</p>
+      <button class="cf-back" onclick="cfGo(1)">&#8592; Back</button>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Choose your preferred payment method. Use the <strong>💬 chat bubble</strong> on the bottom right to talk to us — we'll send you our account details right away.</p>
       <div class="cf-methods">
         <div class="cf-method" id="pm-zelle" onclick="cfSelectMethod('Zelle',this)">
           <div class="cf-method-icon">💙</div>
@@ -483,8 +467,8 @@
     </div>
 
     <!-- STEP 3: Upload proof -->
-    <div class="cf-body" id="cf-step4" style="display:none">
-      <button class="cf-back" onclick="cfGo(3)">&#8592; Back</button>
+    <div class="cf-body" id="cf-step3" style="display:none">
+      <button class="cf-back" onclick="cfGo(2)">&#8592; Back</button>
       <p style="font-size:13px;color:var(--muted);margin-bottom:14px">After sending payment, upload your screenshot here as proof.</p>
       <img id="cf-proof-preview" class="cf-proof-preview" alt="Proof" />
       <div class="cf-upload" id="cf-upload-area" onclick="document.getElementById('cf-file-input').click()">
@@ -802,7 +786,7 @@ function cfOverlayClick(e) {
 
 function cfShowStep(n) {
   cfStep = n;
-  [1,2,3,4].forEach(i => {
+  [1,2,3].forEach(i => {
     const el = document.getElementById('cf-step'+i);
     if(el) el.style.display = i===n ? 'block' : 'none';
   });
@@ -810,7 +794,7 @@ function cfShowStep(n) {
   document.getElementById('cf-foot').style.display = 'block';
 
   // Step dots
-  [1,2,3,4].forEach(i => {
+  [1,2,3].forEach(i => {
     const dot = document.getElementById('dot'+i);
     if(!dot) return;
     dot.classList.remove('active','done');
@@ -822,10 +806,9 @@ function cfShowStep(n) {
   const btn = document.getElementById('cf-main-btn');
   btn.disabled = false;
   btn.className = 'cf-btn';
-  if (n === 1) { btn.textContent = 'Next — Chat with Us →'; }
-  else if (n === 2) { btn.textContent = 'Next — Choose Payment →'; }
-  else if (n === 3) { btn.textContent = 'Next — Upload Proof →'; }
-  else if (n === 4) { btn.textContent = 'Submit Order ✓'; btn.classList.add('green'); btn.disabled = !cfProofB64; }
+  if (n === 1) { btn.textContent = 'Next — Choose Payment →'; }
+  else if (n === 2) { btn.textContent = 'Next — Upload Proof →'; }
+  else if (n === 3) { btn.textContent = 'Submit Order ✓'; btn.classList.add('green'); btn.disabled = !cfProofB64; }
 }
 
 function cfGo(n) { cfShowStep(n); }
@@ -842,11 +825,9 @@ function cfNext() {
     if (!ok) { showToast('Please fill in all required fields.'); return; }
     cfShowStep(2);
   } else if (cfStep === 2) {
+    if (!cfPayMethod) { showToast('Please select a payment method.'); return; }
     cfShowStep(3);
   } else if (cfStep === 3) {
-    if (!cfPayMethod) { showToast('Please select a payment method.'); return; }
-    cfShowStep(4);
-  } else if (cfStep === 4) {
     cfSubmit();
   }
 }
@@ -912,10 +893,10 @@ function cfSubmit() {
   // Show success
   document.getElementById('cf-success-name').textContent = name;
   document.getElementById('cf-success-phone').textContent = phone;
-  [1,2,3,4].forEach(i => { const el=document.getElementById('cf-step'+i); if(el) el.style.display='none'; });
+  [1,2,3].forEach(i => { const el=document.getElementById('cf-step'+i); if(el) el.style.display='none'; });
   document.getElementById('cf-success').style.display = 'block';
   document.getElementById('cf-foot').style.display = 'none';
-  [1,2,3,4].forEach(i => { const d=document.getElementById('dot'+i); if(d) d.classList.add('done'); });
+  [1,2,3].forEach(i => { const d=document.getElementById('dot'+i); if(d) d.classList.add('done'); });
 }
 
 function openTawkChat() {
