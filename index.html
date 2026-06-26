@@ -758,10 +758,21 @@ function cfNext() {
   });
   localStorage.setItem('ll_orders', JSON.stringify(orders));
 
-  // Set Tawk visitor info
+  // Set Tawk visitor info including product interest
   try {
     if (window.Tawk_API && typeof window.Tawk_API.setAttributes === 'function') {
-      window.Tawk_API.setAttributes({ name: name, email: document.getElementById('cf-email').value.trim() || '' }, function(){});
+      window.Tawk_API.setAttributes({
+        name: name,
+        email: document.getElementById('cf-email').value.trim() || '',
+      }, function(){});
+    }
+  } catch(e) {}
+  // Send auto message into Tawk chat so you see what they want
+  try {
+    if (window.Tawk_API && typeof window.Tawk_API.sendMessage === 'function') {
+      window.Tawk_API.sendMessage(
+        'Hi! I am interested in: ' + cfProduct.name + ' ($' + cfProduct.price + '). My name is ' + name + ', phone: ' + phone + ', delivery: ' + document.getElementById('cf-address').value.trim() + ' ' + document.getElementById('cf-city').value.trim()
+      );
     }
   } catch(e) {}
 
