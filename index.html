@@ -593,7 +593,6 @@ function renderProducts() {
           <div class="card-footer">
             <div class="card-price">$${p.price.toLocaleString()} <span>USD</span></div>
             <button class="add-to-cart" id="btn-${p.id}" onclick="openEnquire(${p.id})">Chat to Buy 💬</button>
-          <button class="add-to-cart" style="background:var(--green);margin-top:8px;width:100%" onclick="openPayProof(${p.id})">I've Paid — Upload Proof ✓</button>
           </div>
         </div>
       </div>
@@ -698,27 +697,40 @@ let cfProduct = null;
 function openEnquire(id) {
   cfProduct = products.find(p => p.id === id);
 
-  // Product info
-  document.getElementById('cf-prod-name').textContent = cfProduct.name;
-  document.getElementById('cf-prod-price').textContent = '$' + cfProduct.price.toLocaleString() + ' USD';
-  const imgWrap = document.getElementById('cf-prod-img');
-  if (cfProduct.images && cfProduct.images.length) {
-    imgWrap.innerHTML = `<img src="${cfProduct.images[0]}" class="cf-product-img" alt="${cfProduct.name}">`;
-  } else {
-    imgWrap.innerHTML = `<div class="cf-product-img" style="display:flex;align-items:center;justify-content:center;font-size:24px;background:#f1f0eb">${cfProduct.emoji}</div>`;
-  }
+  // Set Tawk visitor attributes with product info
+  try {
+    if (window.Tawk_API && typeof window.Tawk_API.setAttributes === 'function') {
+      window.Tawk_API.setAttributes({
+        'Product': cfProduct.name,
+        'Price': '$' + cfProduct.price,
+        'Grade': cfProduct.grade,
+        'Specs': cfProduct.specs,
+      }, function(){});
+    }
+  } catch(e) {}
 
-  // Reset
-  document.getElementById('cf-step1').style.display = 'block';
-  document.getElementById('cf-step2').style.display = 'none';
-  document.getElementById('cf-foot').style.display = 'block';
-  document.getElementById('cf-main-btn').textContent = 'Next — Open Chat →';
-  ['cf-name','cf-phone','cf-email','cf-address','cf-city'].forEach(i => {
-    const el = document.getElementById(i); if(el){ el.value=''; el.classList.remove('err'); }
-  });
+  // Add Tawk event
+  try {
+    if (window.Tawk_API && typeof window.Tawk_API.addEvent === 'function') {
+      window.Tawk_API.addEvent('Interested In', {
+        product: cfProduct.name,
+        price: '$' + cfProduct.price,
+        grade: cfProduct.grade,
+        specs: cfProduct.specs,
+      }, function(){});
+    }
+  } catch(e) {}
 
-  document.getElementById('cf-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
+  // Open Tawk chat
+  try {
+    if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
+      window.Tawk_API.maximize();
+    } else if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') {
+      window.Tawk_API.toggle();
+    }
+  } catch(e) {}
+
+  showToast('💬 Chat opened — ' + cfProduct.name);
 }
 
 function openPayProof(id) { openEnquire(id); }
