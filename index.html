@@ -458,30 +458,44 @@
       </div>
     </div>
 
-    <!-- STEP 2: Order Placed + Upload Proof -->
+    <!-- STEP 2: Order Placed -->
     <div class="cf-body" id="cf-step2" style="display:none">
       <!-- Order confirmed -->
       <div style="text-align:center;padding:20px 0 16px">
         <div style="width:64px;height:64px;background:#D1FAE5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:32px">✅</div>
         <h3 style="font-size:20px;font-weight:800;margin-bottom:4px">Order Placed!</h3>
         <div style="font-size:12px;color:var(--muted);margin-bottom:4px" id="cf-order-ref"></div>
-        <p style="font-size:13px;color:var(--muted);line-height:1.6">Your order is confirmed. Check the chat for payment details.</p>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6">Your order is confirmed. Follow the steps below to complete your payment.</p>
       </div>
 
       <!-- Steps -->
       <div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px">
         <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
-          <div style="width:28px;height:28px;background:#EEF2FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">💬</div>
+          <div style="width:28px;height:28px;background:#EEF2FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">1️⃣</div>
           <div>
-            <div style="font-size:13px;font-weight:600">Complete payment in chat</div>
-            <div style="font-size:12px;color:var(--muted)">We've sent you payment instructions in the chat below.</div>
+            <div style="font-size:13px;font-weight:600">Open the chat below</div>
+            <div style="font-size:12px;color:var(--muted)">Click the green chat bubble at the bottom right of this page to start chatting with us.</div>
           </div>
         </div>
         <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
-          <div style="width:28px;height:28px;background:#EEF2FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">📸</div>
+          <div style="width:28px;height:28px;background:#EEF2FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">2️⃣</div>
           <div>
-            <div style="font-size:13px;font-weight:600">Upload payment screenshot</div>
-            <div style="font-size:12px;color:var(--muted)">After paying, upload your screenshot below so we can confirm.</div>
+            <div style="font-size:13px;font-weight:600">Fill in the chat form</div>
+            <div style="font-size:12px;color:var(--muted)">Enter your name, email, phone and your order reference: <strong id="cf-order-ref-inline" style="color:var(--accent)"></strong></div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+          <div style="width:28px;height:28px;background:#EEF2FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">3️⃣</div>
+          <div>
+            <div style="font-size:13px;font-weight:600">We send you payment details</div>
+            <div style="font-size:12px;color:var(--muted)">Our team will send you our Zelle, Cash App or Chime account details in the chat.</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+          <div style="width:28px;height:28px;background:#EEF2FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">4️⃣</div>
+          <div>
+            <div style="font-size:13px;font-weight:600">Send payment screenshot in chat</div>
+            <div style="font-size:12px;color:var(--muted)">After paying, send your payment screenshot directly in the chat using the 📎 attachment button.</div>
           </div>
         </div>
         <div style="display:flex;align-items:flex-start;gap:10px">
@@ -493,17 +507,18 @@
         </div>
       </div>
 
-      <!-- Upload proof -->
-      <div style="font-weight:700;font-size:14px;margin-bottom:8px">Upload Payment Screenshot</div>
-      <img id="cf-proof-preview" style="width:100%;max-height:180px;object-fit:cover;border-radius:10px;margin-bottom:10px;display:none" alt="proof" />
-      <div id="cf-upload-area" onclick="document.getElementById('cf-file-input').click()" style="border:2px dashed var(--border);border-radius:10px;padding:20px;text-align:center;cursor:pointer;margin-bottom:12px;transition:all 0.15s">
-        <div style="font-size:28px;margin-bottom:6px">📸</div>
-        <div style="font-size:13px;font-weight:600;margin-bottom:2px" id="cf-upload-text">Tap to upload screenshot</div>
-        <div style="font-size:11px;color:var(--muted)">JPG or PNG — your payment confirmation</div>
+      <!-- Big chat button -->
+      <div style="background:#EEF2FF;border-radius:12px;padding:16px;text-align:center;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px">👇 Your order ref number:</div>
+        <div style="font-size:18px;font-weight:800;color:var(--accent);margin-bottom:12px" id="cf-order-ref-big"></div>
+        <div style="font-size:12px;color:var(--muted)">Copy this and paste it in the chat form so we can find your order instantly.</div>
       </div>
-      <input type="file" id="cf-file-input" accept="image/*" style="display:none" onchange="cfHandleProof(this)" />
-      <button onclick="cfFinalSubmit()" id="cf-final-btn" style="width:100%;background:var(--green);color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;opacity:0.5;pointer-events:none">
-        Submit Payment Proof ✓
+
+      <button onclick="closeCF()" style="width:100%;background:#4F46E5;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">
+        💬 Go to Chat Now
+      </button>
+      <button onclick="closeCF()" style="width:100%;background:transparent;color:var(--muted);border:1px solid var(--border);padding:11px;border-radius:10px;font-size:13px;cursor:pointer">
+        Back to Store
       </button>
     </div>
 
@@ -861,6 +876,8 @@ function cfSubmitAndChat() {
   const ref = 'ORD-' + Math.random().toString(36).substring(2,10).toUpperCase();
   document.getElementById('cf-order-ref').textContent = 'Ref: ' + ref;
   document.getElementById('cf-confirm-phone').textContent = phone;
+  document.getElementById('cf-order-ref-inline').textContent = ref;
+  document.getElementById('cf-order-ref-big').textContent = ref;
 
   // Set Tawk visitor info with order details
   try {
