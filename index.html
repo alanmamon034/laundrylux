@@ -445,11 +445,12 @@
       <div style="border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:4px">
         <div style="font-weight:700;font-size:14px;margin-bottom:6px">Payment</div>
         <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Our team will send you account details in the chat right after you place your order.</div>
-        <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-          <div style="flex:1;min-width:80px;border:1.5px solid var(--border);border-radius:10px;padding:10px;text-align:center;font-size:12px;font-weight:600">💙<br>Zelle</div>
-          <div style="flex:1;min-width:80px;border:1.5px solid var(--border);border-radius:10px;padding:10px;text-align:center;font-size:12px;font-weight:600">💚<br>Cash App</div>
-          <div style="flex:1;min-width:80px;border:1.5px solid var(--border);border-radius:10px;padding:10px;text-align:center;font-size:12px;font-weight:600">🟡<br>Chime</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap" id="cf-pay-methods">
+          <div class="cf-pay-opt" onclick="cfPickMethod('Zelle',this)" style="flex:1;min-width:80px;border:2px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s">💙<br>Zelle</div>
+          <div class="cf-pay-opt" onclick="cfPickMethod('Cash App',this)" style="flex:1;min-width:80px;border:2px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s">💚<br>Cash App</div>
+          <div class="cf-pay-opt" onclick="cfPickMethod('Chime',this)" style="flex:1;min-width:80px;border:2px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s">🟡<br>Chime</div>
         </div>
+        <div id="cf-method-selected" style="display:none;font-size:12px;color:var(--green);font-weight:600;margin-bottom:12px;text-align:center">✓ <span id="cf-method-name"></span> selected</div>
         <button onclick="cfSubmitAndChat()" id="cf-pay-btn" style="width:100%;background:#4F46E5;color:#fff;border:none;padding:15px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">
           Complete Purchase →
         </button>
@@ -795,6 +796,9 @@ function openEnquire(id) {
   document.getElementById('cf-upload-text').textContent = 'Tap to upload screenshot';
   document.getElementById('cf-upload-area').style.borderColor = 'var(--border)';
   document.getElementById('cf-upload-area').style.background = '';
+  cfPayMethod = '';
+  document.querySelectorAll('.cf-pay-opt').forEach(m => { m.style.borderColor='var(--border)'; m.style.background=''; });
+  document.getElementById('cf-method-selected').style.display = 'none';
   const finalBtn = document.getElementById('cf-final-btn');
   finalBtn.style.opacity = '0.5';
   finalBtn.style.pointerEvents = 'none';
@@ -826,6 +830,7 @@ function cfSubmitAndChat() {
   if (!phone)   { document.getElementById('cf-phone').classList.add('err'); ok = false; }
   if (!email)   { document.getElementById('cf-email').classList.add('err'); ok = false; }
   if (!address) { document.getElementById('cf-address').classList.add('err'); ok = false; }
+  if (!cfPayMethod) { showToast('Please select a payment method.'); return; }
   if (!ok) { showToast('Please fill in all required fields.'); return; }
 
   cfCustomerName = name;
@@ -864,6 +869,7 @@ function cfSubmitAndChat() {
         name: name,
         email: email,
         'Order': cfProduct.name + ' - $' + cfProduct.price,
+        'Payment Method': cfPayMethod,
         'Phone': phone,
         'Address': address + (city ? ', ' + city : ''),
         'Ref': ref,
@@ -914,6 +920,21 @@ function cfFinalSubmit() {
   document.getElementById('cf-title').textContent = 'Thank You! 🎉';
   document.getElementById('cf-done-phone').textContent = cfCustomerPhone;
   showToast('Payment proof submitted!');
+}
+
+let cfPayMethod = '';
+
+function cfPickMethod(name, el) {
+  cfPayMethod = name;
+  document.querySelectorAll('.cf-pay-opt').forEach(m => {
+    m.style.borderColor = 'var(--border)';
+    m.style.background = '';
+    m.style.color = '';
+  });
+  el.style.borderColor = '#4F46E5';
+  el.style.background = '#EEF2FF';
+  document.getElementById('cf-method-name').textContent = name;
+  document.getElementById('cf-method-selected').style.display = 'block';
 }
 
 function cfNext() { cfSubmitAndChat(); }
