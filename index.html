@@ -806,7 +806,7 @@ function openEnquire(id) {
   document.getElementById('cf-upload-area').style.background = '';
   cfPayMethod = '';
   document.querySelectorAll('.cf-pay-opt').forEach(m => { m.style.borderColor='var(--border)'; m.style.background=''; });
-  document.getElementById('cf-method-selected').style.display = 'none';
+  const ms = document.getElementById('cf-method-selected'); if(ms) ms.style.display = 'none';
   const finalBtn = document.getElementById('cf-final-btn');
   finalBtn.style.opacity = '0.5';
   finalBtn.style.pointerEvents = 'none';
@@ -896,41 +896,9 @@ function cfSubmitAndChat() {
   }, 500);
 }
 
-function cfHandleProof(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function(ev) {
-    cfProofB64 = ev.target.result;
-    const preview = document.getElementById('cf-proof-preview');
-    preview.src = cfProofB64;
-    preview.style.display = 'block';
-    document.getElementById('cf-upload-text').textContent = '✓ Screenshot uploaded';
-    document.getElementById('cf-upload-area').style.borderColor = 'var(--green)';
-    document.getElementById('cf-upload-area').style.background = '#F0FDF4';
-    const btn = document.getElementById('cf-final-btn');
-    btn.style.opacity = '1';
-    btn.style.pointerEvents = 'auto';
-  };
-  reader.readAsDataURL(file);
-}
+function cfHandleProof(input) {} // handled in chat
 
-function cfFinalSubmit() {
-  if (!cfProofB64) { showToast('Please upload your payment screenshot first.'); return; }
-
-  // Update order in admin with proof
-  const orders = JSON.parse(localStorage.getItem('ll_orders') || '[]');
-  const last = orders[orders.length - 1];
-  if (last) { last.status = 'paid'; last.paymentProof = cfProofB64; }
-  localStorage.setItem('ll_orders', JSON.stringify(orders));
-
-  // Show done page
-  document.getElementById('cf-step2').style.display = 'none';
-  document.getElementById('cf-step3').style.display = 'block';
-  document.getElementById('cf-title').textContent = 'Thank You! 🎉';
-  document.getElementById('cf-done-phone').textContent = cfCustomerPhone;
-  showToast('Payment proof submitted!');
-}
+function cfFinalSubmit() {} // handled in chat
 
 let cfPayMethod = '';
 
