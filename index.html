@@ -858,39 +858,70 @@ function cfSubmitAndChat() {
   });
   localStorage.setItem('ll_orders', JSON.stringify(orders));
 
-  // Show order placed page
-  document.getElementById('cf-step1').style.display = 'none';
-  document.getElementById('cf-step2').style.display = 'block';
-  document.getElementById('cf-product-bar').style.display = 'none';
-  document.getElementById('cf-title').textContent = 'Order Placed! ✅';
   const ref = 'ORD-' + Math.random().toString(36).substring(2,10).toUpperCase();
-  document.getElementById('cf-order-ref').textContent = 'Ref: ' + ref;
-  document.getElementById('cf-confirm-phone').textContent = phone;
-  const ori=document.getElementById('cf-order-ref-inline'); if(ori) ori.textContent=ref;
-  const orb=document.getElementById('cf-order-ref-big'); if(orb) orb.textContent=ref;
 
-  // Set Tawk visitor info with order details
+  // Build order message to auto-send in chat
+  const orderMsg = "Name: " + name +
+    "\nEmail: " + email +
+    "\nPhone: " + phone +
+    "\nOrder Reference: " + ref +
+    "\nProduct: " + cfProduct.name +
+    "\nPrice: $" + cfProduct.price +
+    "\nPayment Method: " + cfPayMethod +
+    "\nDelivery: " + address + (city ? ', ' + city : '');
+
+  // Close modal immediately
+  document.getElementById('cf-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+
+  // Set Tawk visitor info
   try {
     if (window.Tawk_API && typeof window.Tawk_API.setAttributes === 'function') {
-      window.Tawk_API.setAttributes({
-        name: name,
-        email: email,
-        'Order': cfProduct.name + ' - $' + cfProduct.price,
-        'Payment Method': cfPayMethod,
-        'Phone': phone,
-        'Address': address + (city ? ', ' + city : ''),
-        'Ref': ref,
-      }, function(){});
+      window.Tawk_API.setAttributes({ name: name, email: email }, function(){});
     }
   } catch(e) {}
 
-  // Open Tawk.to chat — trigger will auto-send payment options
+  // Open Tawk chat
   setTimeout(() => {
     try {
       if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') window.Tawk_API.maximize();
       else if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') window.Tawk_API.toggle();
     } catch(e) {}
-  }, 500);
+
+    // Inject order details into chat input and auto-send
+    setTimeout(() => {
+      try {
+        const frames = document.querySelectorAll('iframe');
+        frames.forEach(frame => {
+          try {
+            const doc = frame.contentDocument || frame.contentWindow.document;
+            const input = doc.querySelector('textarea') || doc.querySelector('[contenteditable="true"]');
+            if (input) {
+              input.focus();
+              if (input.tagName === 'TEXTAREA') {
+                Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set.call(input, orderMsg);
+              } else {
+                input.textContent = orderMsg;
+              }
+              input.dispatchEvent(new Event('input', {bubbles:true}));
+              // Auto click send button
+              setTimeout(() => {
+                try {
+                  const sendBtn = doc.querySelector('[data-qa="submit-btn"]') ||
+                                  doc.querySelector('button[type="submit"]') ||
+                                  doc.querySelector('.tawk-button-circle') ||
+                                  doc.querySelector('[aria-label="Send"]');
+                  if (sendBtn) sendBtn.click();
+                } catch(e) {}
+              }, 500);
+            }
+          } catch(e) {}
+        });
+      } catch(e) {}
+    }, 1000);
+  }, 400);
+
+  showToast('Order placed! Chat opening... 💬');
 }
 
 function cfHandleProof(input) {} // handled in chat
