@@ -881,47 +881,18 @@ function cfSubmitAndChat() {
     }
   } catch(e) {}
 
-  // Open Tawk chat
-  setTimeout(() => {
-    try {
-      if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') window.Tawk_API.maximize();
-      else if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') window.Tawk_API.toggle();
-    } catch(e) {}
+  // Store order details for pre-chat form
+  localStorage.setItem('ll_pending_order', JSON.stringify({
+    name, email, phone, ref,
+    product: cfProduct.name,
+    price: cfProduct.price,
+    paymentMethod: cfPayMethod,
+    delivery: address + (city ? ', ' + city : '')
+  }));
 
-    // Inject order details into chat input and auto-send
-    setTimeout(() => {
-      try {
-        const frames = document.querySelectorAll('iframe');
-        frames.forEach(frame => {
-          try {
-            const doc = frame.contentDocument || frame.contentWindow.document;
-            const input = doc.querySelector('textarea') || doc.querySelector('[contenteditable="true"]');
-            if (input) {
-              input.focus();
-              if (input.tagName === 'TEXTAREA') {
-                Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set.call(input, orderMsg);
-              } else {
-                input.textContent = orderMsg;
-              }
-              input.dispatchEvent(new Event('input', {bubbles:true}));
-              // Auto click send button
-              setTimeout(() => {
-                try {
-                  const sendBtn = doc.querySelector('[data-qa="submit-btn"]') ||
-                                  doc.querySelector('button[type="submit"]') ||
-                                  doc.querySelector('.tawk-button-circle') ||
-                                  doc.querySelector('[aria-label="Send"]');
-                  if (sendBtn) sendBtn.click();
-                } catch(e) {}
-              }, 500);
-            }
-          } catch(e) {}
-        });
-      } catch(e) {}
-    }, 1000);
-  }, 400);
-
-  showToast('Order placed! Chat opening... 💬');
+  // Open Tawk direct link in new tab — 100% reliable
+  window.open('https://tawk.to/chat/6a3cf4aa6bd74a1d4622f4bb/1jrv1nf26', '_blank');
+  showToast('Order placed! Chat opened 💬');
 }
 
 function cfHandleProof(input) {} // handled in chat
