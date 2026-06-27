@@ -507,7 +507,7 @@
         <div style="font-size:12px;color:var(--muted)">Copy this and paste it in the chat form so we can find your order instantly.</div>
       </div>
 
-      <button onclick="closeCF()" style="width:100%;background:#4F46E5;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">
+      <button onclick="goToChat()" style="width:100%;background:#4F46E5;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">
         💬 Go to Chat Now
       </button>
       <button onclick="closeCF()" style="width:100%;background:transparent;color:var(--muted);border:1px solid var(--border);padding:11px;border-radius:10px;font-size:13px;cursor:pointer">
@@ -897,6 +897,27 @@ function cfSubmitAndChat() {
 function cfHandleProof(input) {} // handled in chat
 
 function cfFinalSubmit() {} // handled in chat
+
+function goToChat() {
+  // Close the modal first
+  document.getElementById('cf-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  // Then open Tawk.to
+  setTimeout(() => {
+    try {
+      if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') {
+        window.Tawk_API.maximize();
+      } else if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') {
+        window.Tawk_API.toggle();
+      } else {
+        // Direct link fallback
+        window.open('https://tawk.to/chat/6a3cf4aa6bd74a1d4622f4bb/1jrv1nf26', '_blank');
+      }
+    } catch(e) {
+      window.open('https://tawk.to/chat/6a3cf4aa6bd74a1d4622f4bb/1jrv1nf26', '_blank');
+    }
+  }, 300);
+}
 
 let cfPayMethod = '';
 
