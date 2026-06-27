@@ -250,21 +250,6 @@
   .cf-success h4{font-size:20px;font-weight:800;margin-bottom:8px}
   .cf-success p{font-size:13px;color:var(--muted);line-height:1.7}
 
-
-  /* Built-in chat */
-  .chat-bubble-customer { background:#4F46E5; color:#fff; padding:10px 14px; border-radius:14px 14px 4px 14px; font-size:13px; max-width:75%; align-self:flex-end; line-height:1.5; }
-  .chat-bubble-admin { background:#F1F0EB; color:#1A1A2E; padding:10px 14px; border-radius:14px 14px 14px 4px; font-size:13px; max-width:75%; align-self:flex-start; line-height:1.5; }
-  .chat-bubble-system { background:#FEF3C7; color:#92400E; padding:8px 12px; border-radius:8px; font-size:11px; text-align:center; align-self:center; }
-  .chat-time { font-size:10px; color:var(--muted); margin-top:2px; }
-  .chat-msg-wrap { display:flex; flex-direction:column; }
-  .chat-msg-wrap.customer { align-items:flex-end; }
-  .chat-msg-wrap.admin { align-items:flex-start; }
-  .chat-msg-wrap.system { align-items:center; }
-  #cf-step2 { display:none; }
-  #cf-step2.active { display:flex !important; }
-  .pay-chip { display:inline-block; background:#EEF2FF; color:#4F46E5; border:1px solid #4F46E5; border-radius:20px; padding:5px 14px; font-size:12px; font-weight:600; cursor:pointer; margin:3px; }
-  .pay-chip:hover { background:#4F46E5; color:#fff; }
-
 </style>
 </head>
 <body>
@@ -414,11 +399,13 @@
 
 <!-- Chat-to-Buy Flow -->
 <div class="cf-overlay" id="cf-overlay" onclick="cfOverlayClick(event)">
-  <div class="cf-box" id="cf-box">
+  <div class="cf-box">
     <div class="cf-head">
       <h3 id="cf-title">Complete Your Order</h3>
       <button class="cf-close" onclick="closeCF()">&#x2715;</button>
     </div>
+
+    <!-- Product bar -->
     <div class="cf-product" id="cf-product-bar">
       <div id="cf-prod-img"></div>
       <div>
@@ -427,71 +414,112 @@
       </div>
     </div>
 
-    <!-- STEP 1: Order form -->
+    <!-- STEP 1: Details -->
     <div class="cf-body" id="cf-step1">
-      <div style="font-weight:700;font-size:14px;margin-bottom:6px">Your Details</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px">We need these to arrange your delivery.</div>
+      <div style="font-weight:700;font-size:15px;margin-bottom:6px">Your Details</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:14px">We need these to arrange your delivery.</div>
       <input class="cf-input" id="cf-name" placeholder="Full name *" />
       <input class="cf-input" id="cf-phone" placeholder="Phone number *" type="tel" />
       <input class="cf-input" id="cf-email" placeholder="Email address *" type="email" />
       <input class="cf-input" id="cf-address" placeholder="Delivery address *" />
-      <input class="cf-input" id="cf-city" placeholder="City / Area" />
+      <input class="cf-input" id="cf-city" placeholder="City / Area *" />
 
-      <div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-top:4px;margin-bottom:4px">
-        <div style="font-weight:700;font-size:14px;margin-bottom:6px">Order Summary</div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
-          <span style="color:var(--muted)">Product price</span><span id="cf-summary-price" style="font-weight:600"></span>
+      <!-- Order summary -->
+      <div style="border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:8px;margin-bottom:16px">
+        <div style="font-weight:700;font-size:14px;margin-bottom:12px">Order Summary</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px">
+          <span style="color:var(--muted)">Product price</span>
+          <span id="cf-summary-price" style="font-weight:600"></span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:10px">
-          <span style="color:var(--muted)">Delivery</span><span style="color:var(--green);font-weight:600">Free</span>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:12px">
+          <span style="color:var(--muted)">Delivery</span>
+          <span style="font-weight:600;color:var(--green)">Free</span>
         </div>
-        <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;border-top:1px solid var(--border);padding-top:10px">
-          <span>Total</span><span id="cf-summary-total"></span>
+        <div style="border-top:1px solid var(--border);padding-top:10px;display:flex;justify-content:space-between;font-size:15px;font-weight:800">
+          <span>Total</span>
+          <span id="cf-summary-total"></span>
         </div>
       </div>
 
-      <div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:4px">
+      <!-- Payment methods -->
+      <div style="border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:4px">
         <div style="font-weight:700;font-size:14px;margin-bottom:6px">Payment</div>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Our team will send you account details in the chat right after you place your order.</div>
-        <div style="display:flex;gap:8px;margin-bottom:14px" id="cf-pay-methods">
-          <div class="cf-pay-opt" onclick="cfPickMethod('Zelle',this)" style="flex:1;border:2px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer">💙<br>Zelle</div>
-          <div class="cf-pay-opt" onclick="cfPickMethod('Cash App',this)" style="flex:1;border:2px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer">💚<br>Cash App</div>
-          <div class="cf-pay-opt" onclick="cfPickMethod('Chime',this)" style="flex:1;border:2px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer">🟡<br>Chime</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:14px">Our team will send you account details in the chat right after you place your order.</div>
+        <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap" id="cf-pay-methods">
+          <div class="cf-pay-opt" onclick="cfPickMethod('Zelle',this)" style="flex:1;min-width:80px;border:2px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s">💙<br>Zelle</div>
+          <div class="cf-pay-opt" onclick="cfPickMethod('Cash App',this)" style="flex:1;min-width:80px;border:2px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s">💚<br>Cash App</div>
+          <div class="cf-pay-opt" onclick="cfPickMethod('Chime',this)" style="flex:1;min-width:80px;border:2px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s">🟡<br>Chime</div>
         </div>
         <div id="cf-method-selected" style="display:none;font-size:12px;color:var(--green);font-weight:600;margin-bottom:12px;text-align:center">✓ <span id="cf-method-name"></span> selected</div>
-        <button onclick="cfSubmitAndChat()" style="width:100%;background:#4F46E5;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">
+        <button onclick="cfSubmitAndChat()" id="cf-pay-btn" style="width:100%;background:#4F46E5;color:#fff;border:none;padding:15px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer">
           Complete Purchase →
         </button>
+        <div style="font-size:11px;color:var(--muted);text-align:center;margin-top:8px">You will receive payment instructions in chat immediately.</div>
       </div>
     </div>
 
-    <!-- STEP 2: Built-in Live Chat -->
-    <div id="cf-step2" style="display:none;flex-direction:column;height:420px">
-      <!-- Chat header -->
-      <div style="background:var(--dark);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:10px;height:10px;background:#10B981;border-radius:50%"></div>
+    <!-- STEP 2: Order Placed -->
+    <div class="cf-body" id="cf-step2" style="display:none">
+      <!-- Order confirmed -->
+      <div style="text-align:center;padding:20px 0 16px">
+        <div style="width:64px;height:64px;background:#D1FAE5;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:32px">✅</div>
+        <h3 style="font-size:20px;font-weight:800;margin-bottom:4px">Order Placed!</h3>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px" id="cf-order-ref"></div>
+        <p style="font-size:13px;color:var(--muted);line-height:1.6">Your order is confirmed. Follow the steps below to complete your payment.</p>
+      </div>
+
+      <!-- Steps -->
+      <div style="border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:16px">
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+          <div style="width:28px;height:28px;background:#EEF2FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">1️⃣</div>
           <div>
-            <div style="font-size:13px;font-weight:700">LaundryLux Support</div>
-            <div style="font-size:10px;color:rgba(255,255,255,0.6)" id="chat-status">Connecting...</div>
+            <div style="font-size:13px;font-weight:600">Open the chat below</div>
+            <div style="font-size:12px;color:var(--muted)">Click the green chat bubble at the bottom right of this page to start chatting with us.</div>
           </div>
         </div>
-        <div style="font-size:11px;color:rgba(255,255,255,0.5)" id="chat-ref"></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+          <div style="width:28px;height:28px;background:#EEF2FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">2️⃣</div>
+          <div>
+            <div style="font-size:13px;font-weight:600">Fill in the chat form</div>
+            <div style="font-size:12px;color:var(--muted)">Enter your name, email, phone — your order ref will be sent automatically.</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
+          <div style="width:28px;height:28px;background:#EEF2FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">3️⃣</div>
+          <div>
+            <div style="font-size:13px;font-weight:600">We send you payment details</div>
+            <div style="font-size:12px;color:var(--muted)">Our team will send you payment account details in the chat. Once paid, send your payment screenshot there too.</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px">
+          <div style="width:28px;height:28px;background:#EEF2FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">🚚</div>
+          <div>
+            <div style="font-size:13px;font-weight:600">We arrange delivery</div>
+            <div style="font-size:12px;color:var(--muted)">We'll call <span id="cf-confirm-phone" style="font-weight:600"></span> to arrange delivery once payment is confirmed.</div>
+          </div>
+        </div>
       </div>
 
-      <!-- Order summary bar -->
-      <div style="background:#F8F6F1;padding:10px 16px;border-bottom:1px solid var(--border);font-size:11px;color:var(--muted);flex-shrink:0">
-        <span id="chat-order-summary"></span>
+      <!-- Big chat button -->
+      <div style="background:#EEF2FF;border-radius:12px;padding:16px;text-align:center;margin-bottom:12px">
+        <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:4px">📋 Your order ref:</div>
+        <div style="font-size:22px;font-weight:800;color:var(--accent)" id="cf-order-ref-big"></div>
       </div>
 
-      <!-- Messages -->
-      <div id="chat-messages" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0"></div>
+      <button onclick="goToChat()" style="width:100%;background:#4F46E5;color:#fff;border:none;padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">
+        💬 Go to Chat Now
+      </button>
+      <button onclick="closeCF()" style="width:100%;background:transparent;color:var(--muted);border:1px solid var(--border);padding:11px;border-radius:10px;font-size:13px;cursor:pointer">
+        Back to Store
+      </button>
+    </div>
 
-      <!-- Input -->
-      <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
-        <input id="chat-input" placeholder="Type a message..." style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:13px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')sendChatMsg()" />
-        <button onclick="sendChatMsg()" style="background:#4F46E5;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">Send</button>
-      </div>
+    <!-- STEP 3: All done -->
+    <div class="cf-body" id="cf-step3" style="display:none;text-align:center;padding:40px 20px">
+      <div style="font-size:56px;margin-bottom:14px">🎉</div>
+      <h3 style="font-size:20px;font-weight:800;margin-bottom:8px">Payment Received!</h3>
+      <p style="font-size:13px;color:var(--muted);line-height:1.7">Thank you! We've received your payment proof and will confirm shortly.<br><br>We'll call <span id="cf-done-phone" style="font-weight:600;color:var(--dark)"></span> to arrange your delivery.</p>
+      <button onclick="closeCF()" style="margin-top:24px;width:100%;background:var(--accent);color:#fff;border:none;padding:13px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">Back to Store</button>
     </div>
   </div>
 </div>
@@ -741,14 +769,15 @@ let currentProduct = null;
 
 // ── CHAT-TO-BUY FLOW ──────────────────────────────────────────
 let cfProduct = null;
-let cfPayMethod = '';
-let cfRoomId = '';
-let cfEventSource = null;
+let cfProofB64 = '';
+let cfCustomerName = '';
+let cfCustomerPhone = '';
 
 function openEnquire(id) {
   cfProduct = products.find(p => p.id === id);
-  cfPayMethod = '';
+  cfProofB64 = '';
 
+  // Product info
   document.getElementById('cf-prod-name').textContent = cfProduct.name;
   document.getElementById('cf-prod-price').textContent = '$' + cfProduct.price.toLocaleString() + ' USD';
   document.getElementById('cf-summary-price').textContent = '$' + cfProduct.price.toLocaleString();
@@ -761,16 +790,24 @@ function openEnquire(id) {
     imgWrap.innerHTML = `<div class="cf-product-img" style="display:flex;align-items:center;justify-content:center;font-size:24px;background:#f1f0eb">${cfProduct.emoji}</div>`;
   }
 
+  // Reset
   ['cf-name','cf-phone','cf-email','cf-address','cf-city'].forEach(i => {
     const el = document.getElementById(i); if(el){ el.value=''; el.classList.remove('err'); }
   });
-  document.querySelectorAll('.cf-pay-opt').forEach(m => { m.style.borderColor='var(--border)'; m.style.background=''; });
-  const ms = document.getElementById('cf-method-selected'); if(ms) ms.style.display = 'none';
-
   document.getElementById('cf-step1').style.display = 'block';
-  document.getElementById('cf-step2').classList.remove('active');
+  document.getElementById('cf-step2').style.display = 'none';
+  const s3=document.getElementById('cf-step3'); if(s3) s3.style.display='none';
   document.getElementById('cf-product-bar').style.display = 'flex';
   document.getElementById('cf-title').textContent = 'Complete Your Order';
+  try { document.getElementById('cf-proof-preview').style.display = 'none'; } catch(e) {}
+  try { document.getElementById('cf-upload-text').textContent = 'Tap to upload screenshot'; } catch(e) {}
+  try { document.getElementById('cf-upload-area').style.borderColor = 'var(--border)'; } catch(e) {}
+  try { document.getElementById('cf-upload-area').style.background = ''; } catch(e) {}
+  cfPayMethod = '';
+  document.querySelectorAll('.cf-pay-opt').forEach(m => { m.style.borderColor='var(--border)'; m.style.background=''; });
+  const ms = document.getElementById('cf-method-selected'); if(ms) ms.style.display = 'none';
+  // cf-final-btn removed
+
   document.getElementById('cf-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -780,22 +817,13 @@ function openPayProof(id) { openEnquire(id); }
 function closeCF() {
   document.getElementById('cf-overlay').classList.remove('open');
   document.body.style.overflow = '';
-  if (cfEventSource) { cfEventSource.close(); cfEventSource = null; }
 }
 
 function cfOverlayClick(e) {
   if (e.target === document.getElementById('cf-overlay')) closeCF();
 }
 
-function cfPickMethod(name, el) {
-  cfPayMethod = name;
-  document.querySelectorAll('.cf-pay-opt').forEach(m => { m.style.borderColor='var(--border)'; m.style.background=''; });
-  el.style.borderColor = '#4F46E5'; el.style.background = '#EEF2FF';
-  const mn = document.getElementById('cf-method-name'); if(mn) mn.textContent = name;
-  const msel = document.getElementById('cf-method-selected'); if(msel) msel.style.display = 'block';
-}
-
-async function cfSubmitAndChat() {
+function cfSubmitAndChat() {
   const name = document.getElementById('cf-name').value.trim();
   const phone = document.getElementById('cf-phone').value.trim();
   const email = document.getElementById('cf-email').value.trim();
@@ -810,113 +838,127 @@ async function cfSubmitAndChat() {
   if (!cfPayMethod) { showToast('Please select a payment method.'); return; }
   if (!ok) { showToast('Please fill in all required fields.'); return; }
 
-  // Generate room ID
-  cfRoomId = 'order_' + Date.now();
-  const ref = 'ORD-' + Math.random().toString(36).substring(2,10).toUpperCase();
+  cfCustomerName = name;
+  cfCustomerPhone = phone;
 
-  // Save order to admin
+  // Save to admin
   const orders = JSON.parse(localStorage.getItem('ll_orders') || '[]');
+  const orderId = Date.now();
   orders.push({
-    id: Date.now(), customerName: name, customerPhone: phone,
-    customerEmail: email, productName: cfProduct.name,
-    amount: cfProduct.price, deliveryAddress: address + (city?', '+city:''),
-    deliveryArea: city, paymentMethod: cfPayMethod,
-    status: 'pending', createdAt: Date.now(), roomId: cfRoomId, ref,
+    id: orderId,
+    customerName: name,
+    customerPhone: phone,
+    customerEmail: email,
+    productName: cfProduct.name,
+    amount: cfProduct.price,
+    deliveryAddress: address + (city ? ', ' + city : ''),
+    deliveryArea: city,
+    status: 'pending',
+    createdAt: orderId,
   });
   localStorage.setItem('ll_orders', JSON.stringify(orders));
 
-  // Switch to chat UI
-  document.getElementById('cf-step1').style.display = 'none';
-  document.getElementById('cf-product-bar').style.display = 'none';
-  document.getElementById('cf-title').textContent = 'Live Chat';
-  document.getElementById('cf-step2').classList.add('active');
-  document.getElementById('chat-ref').textContent = ref;
-  document.getElementById('chat-order-summary').textContent =
-    cfProduct.name + ' · $' + cfProduct.price + ' · ' + cfPayMethod;
+  const ref = 'ORD-' + Math.random().toString(36).substring(2,10).toUpperCase();
 
-  // Start listening for messages
-  startChatStream();
+  // Build order message to auto-send in chat
+  const orderMsg = "Name: " + name +
+    "\nEmail: " + email +
+    "\nPhone: " + phone +
+    "\nOrder Reference: " + ref +
+    "\nProduct: " + cfProduct.name +
+    "\nPrice: $" + cfProduct.price +
+    "\nPayment Method: " + cfPayMethod +
+    "\nDelivery: " + address + (city ? ', ' + city : '');
 
-  // Send order details as first message
-  await sendMsg(cfRoomId, 'customer',
-    '🛍️ New Order — ' + ref +
-    '
-👤 ' + name +
-    '
-📞 ' + phone +
-    '
-📧 ' + email +
-    '
-📦 ' + cfProduct.name + ' ($' + cfProduct.price + ')' +
-    '
-💳 Payment: ' + cfPayMethod +
-    '
-📍 ' + address + (city ? ', ' + city : '')
-  );
-}
+  // Close modal immediately
+  document.getElementById('cf-overlay').classList.remove('open');
+  document.body.style.overflow = '';
 
-function startChatStream() {
-  document.getElementById('chat-status').textContent = 'Connected · Live';
-  // Poll for new messages every 3 seconds (reliable on all browsers)
-  let lastId = 0;
-  window._chatPoll = setInterval(async () => {
-    try {
-      const res = await fetch('/api/chat?action=messages&roomId=' + cfRoomId);
-      const data = await res.json();
-      const msgs = data.messages || [];
-      msgs.forEach(msg => {
-        if (msg.id > lastId && msg.sender !== 'customer') {
-          lastId = msg.id;
-          appendMsg(msg);
-        } else if (msg.id > lastId) {
-          lastId = msg.id;
-        }
-      });
-    } catch(e) {}
-  }, 3000);
-}
-
-async function sendMsg(roomId, sender, text) {
+  // Set Tawk visitor info
   try {
-    const res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'send', roomId, sender, text }),
-    });
-    const data = await res.json();
-    if (data.msg && sender === 'customer') appendMsg(data.msg);
+    if (window.Tawk_API && typeof window.Tawk_API.setAttributes === 'function') {
+      window.Tawk_API.setAttributes({ name: name, email: email }, function(){});
+    }
   } catch(e) {}
+
+  // Store order details for pre-chat form
+  localStorage.setItem('ll_pending_order', JSON.stringify({
+    name, email, phone, ref,
+    product: cfProduct.name,
+    price: cfProduct.price,
+    paymentMethod: cfPayMethod,
+    delivery: address + (city ? ', ' + city : '')
+  }));
+
+  // Open Tawk direct link in new tab — 100% reliable
+  window.open('https://tawk.to/chat/6a3cf4aa6bd74a1d4622f4bb/1jrv1nf26', '_blank');
+  showToast('Order placed! Chat opened 💬');
 }
 
-async function sendChatMsg() {
-  const input = document.getElementById('chat-input');
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = '';
-  await sendMsg(cfRoomId, 'customer', text);
+function cfHandleProof(input) {} // handled in chat
+
+function cfFinalSubmit() {} // handled in chat
+
+function goToChat() {
+  const refEl = document.getElementById('cf-order-ref-big');
+  const ref = refEl ? refEl.textContent : '';
+  const product = cfProduct ? cfProduct.name : '';
+  const price = cfProduct ? '$' + cfProduct.price : '';
+  const autoMsg = "Hi! My order ref is: " + ref + "\nProduct: " + product + " " + price + "\nPlease send me payment details.";
+
+  // Close modal
+  document.getElementById('cf-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+
+  setTimeout(() => {
+    // Open Tawk
+    try {
+      if (window.Tawk_API && typeof window.Tawk_API.maximize === 'function') window.Tawk_API.maximize();
+      else if (window.Tawk_API && typeof window.Tawk_API.toggle === 'function') window.Tawk_API.toggle();
+    } catch(e) {}
+
+    // Try to inject message into Tawk input
+    setTimeout(() => {
+      try {
+        const frames = document.querySelectorAll('iframe');
+        frames.forEach(frame => {
+          try {
+            const doc = frame.contentDocument || frame.contentWindow.document;
+            const input = doc.querySelector('textarea') || doc.querySelector('[contenteditable="true"]');
+            if (input) {
+              input.focus();
+              if (input.tagName === 'TEXTAREA') {
+                Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value').set.call(input, autoMsg);
+              } else {
+                input.textContent = autoMsg;
+              }
+              input.dispatchEvent(new Event('input', {bubbles: true}));
+            }
+          } catch(e) {}
+        });
+      } catch(e) {}
+    }, 900);
+  }, 300);
 }
 
-function appendMsg(msg) {
-  const box = document.getElementById('chat-messages');
-  if (!box) return;
-  const wrap = document.createElement('div');
-  wrap.className = 'chat-msg-wrap ' + msg.sender;
-  const isSystem = msg.sender === 'system';
-  const bubbleClass = isSystem ? 'chat-bubble-system' : msg.sender === 'customer' ? 'chat-bubble-customer' : 'chat-bubble-admin';
-  wrap.innerHTML = `
-    <div class="${bubbleClass}">${msg.text.replace(/\n/g,'<br>')}</div>
-    ${!isSystem ? '<div class="chat-time">' + msg.time + '</div>' : ''}
-  `;
-  box.appendChild(wrap);
-  box.scrollTop = box.scrollHeight;
+let cfPayMethod = '';
+
+function cfPickMethod(name, el) {
+  cfPayMethod = name;
+  document.querySelectorAll('.cf-pay-opt').forEach(m => {
+    m.style.borderColor = 'var(--border)';
+    m.style.background = '';
+    m.style.color = '';
+  });
+  el.style.borderColor = '#4F46E5';
+  el.style.background = '#EEF2FF';
+  const mn=document.getElementById('cf-method-name'); if(mn) mn.textContent=name;
+  const msel=document.getElementById('cf-method-selected'); if(msel) msel.style.display='block';
 }
 
 function cfNext() { cfSubmitAndChat(); }
 function openTawkChat() {}
-function goToChat() {}
-function closeCheckout() {
-  if (window._chatPoll) clearInterval(window._chatPoll);
-}
+function closeCheckout() {}
 
 async function submitCheckout() {
   // Validate
