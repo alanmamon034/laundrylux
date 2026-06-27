@@ -797,19 +797,17 @@ function openEnquire(id) {
   });
   document.getElementById('cf-step1').style.display = 'block';
   document.getElementById('cf-step2').style.display = 'none';
-  document.getElementById('cf-step3').style.display = 'none';
+  const s3=document.getElementById('cf-step3'); if(s3) s3.style.display='none';
   document.getElementById('cf-product-bar').style.display = 'flex';
   document.getElementById('cf-title').textContent = 'Complete Your Order';
-  document.getElementById('cf-proof-preview').style.display = 'none';
-  document.getElementById('cf-upload-text').textContent = 'Tap to upload screenshot';
-  document.getElementById('cf-upload-area').style.borderColor = 'var(--border)';
-  document.getElementById('cf-upload-area').style.background = '';
+  try { document.getElementById('cf-proof-preview').style.display = 'none'; } catch(e) {}
+  try { document.getElementById('cf-upload-text').textContent = 'Tap to upload screenshot'; } catch(e) {}
+  try { document.getElementById('cf-upload-area').style.borderColor = 'var(--border)'; } catch(e) {}
+  try { document.getElementById('cf-upload-area').style.background = ''; } catch(e) {}
   cfPayMethod = '';
   document.querySelectorAll('.cf-pay-opt').forEach(m => { m.style.borderColor='var(--border)'; m.style.background=''; });
   const ms = document.getElementById('cf-method-selected'); if(ms) ms.style.display = 'none';
-  const finalBtn = document.getElementById('cf-final-btn');
-  finalBtn.style.opacity = '0.5';
-  finalBtn.style.pointerEvents = 'none';
+  // cf-final-btn removed
 
   document.getElementById('cf-overlay').classList.add('open');
   document.body.style.overflow = 'hidden';
@@ -869,8 +867,8 @@ function cfSubmitAndChat() {
   const ref = 'ORD-' + Math.random().toString(36).substring(2,10).toUpperCase();
   document.getElementById('cf-order-ref').textContent = 'Ref: ' + ref;
   document.getElementById('cf-confirm-phone').textContent = phone;
-  document.getElementById('cf-order-ref-inline').textContent = ref;
-  document.getElementById('cf-order-ref-big').textContent = ref;
+  const ori=document.getElementById('cf-order-ref-inline'); if(ori) ori.textContent=ref;
+  const orb=document.getElementById('cf-order-ref-big'); if(orb) orb.textContent=ref;
 
   // Set Tawk visitor info with order details
   try {
@@ -911,8 +909,8 @@ function cfPickMethod(name, el) {
   });
   el.style.borderColor = '#4F46E5';
   el.style.background = '#EEF2FF';
-  document.getElementById('cf-method-name').textContent = name;
-  document.getElementById('cf-method-selected').style.display = 'block';
+  const mn=document.getElementById('cf-method-name'); if(mn) mn.textContent=name;
+  const msel=document.getElementById('cf-method-selected'); if(msel) msel.style.display='block';
 }
 
 function cfNext() { cfSubmitAndChat(); }
@@ -921,11 +919,11 @@ function closeCheckout() {}
 
 async function submitCheckout() {
   // Validate
-  const fname = document.getElementById('co-fname').value.trim();
-  const lname = document.getElementById('co-lname').value.trim();
-  const email = document.getElementById('co-email').value.trim();
-  const phone = document.getElementById('co-phone').value.trim();
-  const address = document.getElementById('co-address').value.trim();
+  try { const fname = document.getElementById('co-fname').value.trim(); } catch(e) {}
+  try { const lname = document.getElementById('co-lname').value.trim(); } catch(e) {}
+  try { const email = document.getElementById('co-email').value.trim(); } catch(e) {}
+  try { const phone = document.getElementById('co-phone').value.trim(); } catch(e) {}
+  try { const address = document.getElementById('co-address').value.trim(); } catch(e) {}
 
   let hasError = false;
   const required = { 'co-fname': fname, 'co-email': email, 'co-phone': phone, 'co-address': address };
@@ -940,7 +938,7 @@ async function submitCheckout() {
     return;
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    document.getElementById('co-email').classList.add('error');
+    try { document.getElementById('co-email').classList.add('error'); } catch(e) {}
     showError('Please enter a valid email address.');
     return;
   }
@@ -949,7 +947,7 @@ async function submitCheckout() {
   const btn = document.getElementById('co-pay-btn');
   btn.classList.add('loading');
   btn.disabled = true;
-  document.getElementById('co-error').classList.remove('show');
+  try { document.getElementById('co-error').classList.remove('show'); } catch(e) {}
 
   try {
     const res = await fetch('/api/checkout', {
@@ -989,15 +987,15 @@ async function submitCheckout() {
 }
 
 function showError(msg) {
-  const el = document.getElementById('co-error');
+  try { const el = document.getElementById('co-error'); } catch(e) {}
   el.textContent = msg;
   el.classList.add('show');
 }
 
 function showSuccess() {
-  document.getElementById('co-body').style.display = 'none';
-  document.getElementById('co-foot').style.display = 'none';
-  document.getElementById('co-success').classList.add('show');
+  try { document.getElementById('co-body').style.display = 'none'; } catch(e) {}
+  try { document.getElementById('co-foot').style.display = 'none'; } catch(e) {}
+  try { document.getElementById('co-success').classList.add('show'); } catch(e) {}
 }
 
 // Handle payment return from Whop
