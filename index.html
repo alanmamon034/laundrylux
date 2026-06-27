@@ -488,14 +488,7 @@
           <div style="width:28px;height:28px;background:#EEF2FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">3️⃣</div>
           <div>
             <div style="font-size:13px;font-weight:600">We send you payment details</div>
-            <div style="font-size:12px;color:var(--muted)">Our team will send you our Zelle, Cash App or Chime account details in the chat.</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px">
-          <div style="width:28px;height:28px;background:#EEF2FF;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">4️⃣</div>
-          <div>
-            <div style="font-size:13px;font-weight:600">Send payment screenshot in chat</div>
-            <div style="font-size:12px;color:var(--muted)">After paying, send your payment screenshot directly in the chat using the 📎 attachment button.</div>
+            <div style="font-size:12px;color:var(--muted)">Our team will send you payment account details in the chat. Once paid, send your payment screenshot there too.</div>
           </div>
         </div>
         <div style="display:flex;align-items:flex-start;gap:10px">
@@ -676,7 +669,7 @@ function renderProducts() {
           ${p.includes ? `<div class="card-includes">${p.includes}</div>` : ''}
           <div class="card-footer">
             <div class="card-price">$${p.price.toLocaleString()} <span>USD</span></div>
-            <button class="add-to-cart" id="btn-${p.id}" onclick="openEnquire(${p.id})">Chat to Buy 💬</button>
+            <button class="add-to-cart" id="btn-${p.id}" onclick="openEnquire(${p.id})" style="width:100%">Complete Purchase →</button>
           </div>
         </div>
       </div>
