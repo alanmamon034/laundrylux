@@ -890,9 +890,19 @@ function cfSubmitAndChat() {
     delivery: address + (city ? ', ' + city : '')
   }));
 
-  // Open Tawk direct link in new tab — 100% reliable
-  window.open('https://tawk.to/chat/6a3cf4aa6bd74a1d4622f4bb/1jrv1nf26', '_blank');
-  showToast('Order placed! Chat opened 💬');
+  // Open Tawk on same page
+  try {
+    if (window.Tawk_API) {
+      if (typeof window.Tawk_API.maximize === 'function') {
+        window.Tawk_API.maximize();
+      } else {
+        window.Tawk_API.onLoad = function() {
+          window.Tawk_API.maximize();
+        };
+      }
+    }
+  } catch(e) {}
+  showToast('Order placed! Check chat below 💬');
 }
 
 function cfHandleProof(input) {} // handled in chat
