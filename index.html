@@ -1020,10 +1020,16 @@ function cfStartListening() {
   function tryListen() {
     const db = window._fbDb;
     if (!db) { setTimeout(tryListen, 400); return; }
-    const { ref, onChildAdded } = window._fbFns;
-    let first = true;
-    onChildAdded(ref(db, 'chats/' + cfRoomId + '/messages'), (snap) => {
-      if (first) { first = false; return; } // skip the opening msg we already displayed
+    const { ref, onChildAdded, query, orderByChild, startAt } = window._fbFns;
+    // Only listen for messages created AFTER the chat opened so we don't
+    // re-display the opening message the customer already sees
+    const listenFrom = Date.now();
+    const newMsgsQuery = query(
+      ref(db, 'chats/' + cfRoomId + '/messages'),
+      orderByChild('ts'),
+      startAt(listenFrom)
+    );
+    onChildAdded(newMsgsQuery, (snap) => {
       const msg = snap.val();
       if (msg && msg.role === 'admin') cfAddMsg('admin', msg.text, msg.time);
     });
@@ -1055,7 +1061,7 @@ renderProducts();
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getDatabase, ref, push, onChildAdded } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+  import { getDatabase, ref, push, onChildAdded, query, orderByChild, startAt } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
   const firebaseConfig = {
     apiKey: "AIzaSyAgqZWNc1f-wRufI7xdezh5rxrY5eT9_kw",
@@ -1072,7 +1078,7 @@ renderProducts();
 
   // Expose db and functions to global scope for the main script
   window._fbDb = db;
-  window._fbFns = { ref, push, onChildAdded };
+  window._fbFns = { ref, push, onChildAdded, query, orderByChild, startAt };
 </script>
 
 <!--Start of Tawk.to Script-->
