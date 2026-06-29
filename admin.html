@@ -7,299 +7,305 @@
 <style>
   :root {
     --dark: #1A1A2E; --dark2: #16213E; --accent: #2563EB; --amber: #F59E0B;
-    --off-white: #F8F6F1; --muted: #6B7280; --border: #E5E3DE; --card-bg: #FFFFFF;
+    --off-white: #F8F6F1; --muted: #6B7280; --border: #E5E3DE; --card: #FFFFFF;
     --green: #10B981; --red: #EF4444;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--off-white); color: var(--dark); min-height: 100vh; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--off-white); color: var(--dark); height: 100vh; display: flex; flex-direction: column; }
 
-  nav {
-    position: sticky; top: 0; z-index: 100;
-    background: var(--dark); color: #fff;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 5%; height: 60px;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-  }
-  .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; color: #fff; }
+  nav { background: var(--dark); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 58px; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+  .nav-logo { font-size: 18px; font-weight: 700; color: #fff; }
   .nav-logo span { color: var(--accent); }
-  .nav-badge { background: var(--amber); color: var(--dark); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-left: 10px; }
+  .badge { background: var(--amber); color: var(--dark); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+  .fb-status { font-size: 12px; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 6px; }
+  .fb-dot { width: 8px; height: 8px; border-radius: 50%; background: #6B7280; }
+  .fb-dot.connected { background: var(--green); }
 
-  .page { max-width: 1100px; margin: 0 auto; padding: 36px 24px; }
+  .layout { display: flex; flex: 1; overflow: hidden; }
 
-  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
-  .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; }
-  .stat-card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 6px; }
-  .stat-card .value { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
-  .stat-card .value.green { color: var(--green); }
-  .stat-card .value.amber { color: var(--amber); }
-  .stat-card .value.blue { color: var(--accent); }
+  .sidebar { width: 320px; flex-shrink: 0; border-right: 1px solid var(--border); background: var(--card); display: flex; flex-direction: column; }
+  .sidebar-head { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .sidebar-head h2 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .ftab { padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 500; border: 1.5px solid var(--border); background: none; color: var(--dark); cursor: pointer; }
+  .ftab.active { background: var(--dark); color: #fff; border-color: var(--dark); }
+  .orders-list { flex: 1; overflow-y: auto; }
+  .order-item { padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
+  .order-item:hover { background: var(--off-white); }
+  .order-item.active { background: #EFF6FF; border-left: 3px solid var(--accent); }
+  .oi-ref { font-size: 11px; font-weight: 700; color: var(--accent); font-family: monospace; margin-bottom: 3px; }
+  .oi-name { font-size: 14px; font-weight: 600; }
+  .oi-product { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .oi-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+  .oi-amount { font-size: 13px; font-weight: 700; }
+  .status-pill { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 5px; text-transform: uppercase; }
+  .sp-pending   { background: #FEF3C7; color: #92400E; }
+  .sp-confirmed { background: #D1FAE5; color: #065F46; }
+  .sp-shipped   { background: #DBEAFE; color: #1E40AF; }
+  .sp-cancelled { background: #FEE2E2; color: #991B1B; }
+  .empty-orders { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 13px; }
 
-  .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
-  .toolbar h2 { font-size: 20px; font-weight: 700; }
-  .filter-tabs { display: flex; gap: 6px; }
-  .tab { padding: 6px 16px; border-radius: 999px; font-size: 13px; font-weight: 500; border: 1.5px solid var(--border); background: var(--card-bg); color: var(--dark); cursor: pointer; transition: all 0.15s; }
-  .tab.active, .tab:hover { background: var(--dark); color: #fff; border-color: var(--dark); }
-  .clear-btn { font-size: 12px; color: var(--red); border: 1.5px solid var(--red); background: none; padding: 5px 14px; border-radius: 999px; cursor: pointer; font-weight: 600; }
-  .clear-btn:hover { background: #FEE2E2; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .no-selection { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; color: var(--muted); }
+  .no-selection .icon { font-size: 48px; }
+  .no-selection p { font-size: 14px; }
 
-  .orders-table { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
-  .table-head { display: grid; grid-template-columns: 120px 1fr 1fr 100px 110px 110px; gap: 12px; padding: 12px 20px; background: var(--off-white); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); }
-  .order-row { display: grid; grid-template-columns: 120px 1fr 1fr 100px 110px 110px; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); align-items: center; transition: background 0.1s; }
-  .order-row:last-child { border-bottom: none; }
-  .order-row:hover { background: #FAFAF8; }
+  .order-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .order-detail { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 18px; flex-shrink: 0; }
+  .od-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
+  .od-ref { font-size: 12px; font-weight: 800; color: var(--accent); font-family: monospace; }
+  .od-name { font-size: 15px; font-weight: 700; }
+  .od-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+  .od-field .od-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .od-field .od-value { font-size: 13px; font-weight: 600; }
+  .od-field a { color: var(--accent); text-decoration: none; }
+  .status-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+  .sa-btn { padding: 6px 13px; border-radius: 8px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; }
+  .sa-confirm { background: var(--green); color: #fff; }
+  .sa-ship    { background: var(--accent); color: #fff; }
+  .sa-cancel  { background: #FEE2E2; color: var(--red); }
 
-  .ref { font-size: 12px; font-weight: 700; color: var(--accent); font-family: monospace; }
-  .customer-name { font-size: 14px; font-weight: 600; }
-  .customer-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .product-name { font-size: 13px; font-weight: 500; }
-  .product-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .amount { font-size: 15px; font-weight: 700; }
-  .method { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #F9F8F5; }
+  .chat-head { padding: 9px 18px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; color: var(--muted); background: var(--card); flex-shrink: 0; }
+  .chat-messages { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+  .msg-wrap { display: flex; flex-direction: column; }
+  .msg-wrap.customer { align-items: flex-end; }
+  .msg-wrap.admin    { align-items: flex-start; }
+  .msg-bubble { padding: 10px 14px; border-radius: 14px; font-size: 13px; max-width: 78%; line-height: 1.5; word-break: break-word; }
+  .msg-wrap.customer .msg-bubble { background: #4F46E5; color: #fff; border-radius: 14px 14px 4px 14px; }
+  .msg-wrap.admin    .msg-bubble { background: var(--card); border: 1px solid var(--border); border-radius: 14px 14px 14px 4px; }
+  .msg-time { font-size: 10px; color: var(--muted); margin-top: 3px; }
+  .chat-input-row { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--card); flex-shrink: 0; }
+  .chat-input-row textarea { flex: 1; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 13px; font-family: inherit; resize: none; outline: none; height: 42px; }
+  .chat-input-row textarea:focus { border-color: var(--accent); }
+  .send-btn { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 0 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
 
-  .status-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; border: none; font-family: inherit; }
-  .status-pending  { background: #FEF3C7; color: #92400E; }
-  .status-confirmed { background: #D1FAE5; color: #065F46; }
-  .status-shipped  { background: #DBEAFE; color: #1E40AF; }
-  .status-cancelled { background: #FEE2E2; color: #991B1B; }
-
-  .action-btn { background: var(--accent); color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .action-btn:hover { opacity: 0.85; }
-
-  .empty { text-align: center; padding: 72px 24px; color: var(--muted); }
-  .empty .icon { font-size: 48px; margin-bottom: 12px; }
-  .empty p { font-size: 15px; }
-  .empty small { font-size: 13px; color: #9CA3AF; margin-top: 6px; display: block; }
-
-  /* Detail modal */
-  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 300; align-items: center; justify-content: center; }
-  .modal-overlay.open { display: flex; }
-  .modal { background: #fff; border-radius: 16px; width: 94%; max-width: 480px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
-  .modal-head { background: var(--dark); color: #fff; padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; }
-  .modal-head h3 { font-size: 15px; font-weight: 700; }
-  .modal-close { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 20px; cursor: pointer; }
-  .modal-body { padding: 22px; }
-  .detail-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
-  .detail-row:last-child { border-bottom: none; }
-  .detail-row .dk { color: var(--muted); font-weight: 500; }
-  .detail-row .dv { font-weight: 600; text-align: right; max-width: 240px; word-break: break-word; }
-  .modal-actions { display: flex; gap: 10px; padding: 0 22px 22px; flex-wrap: wrap; }
-  .modal-actions button { flex: 1; padding: 11px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; min-width: 100px; }
-  .btn-confirm { background: var(--green); color: #fff; }
-  .btn-ship { background: var(--accent); color: #fff; }
-  .btn-cancel { background: #FEE2E2; color: var(--red); }
-
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--dark); color: #fff; padding: 11px 22px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 500; transition: transform 0.3s; pointer-events: none; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--dark); color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 999; transition: transform 0.3s; pointer-events: none; }
   .toast.show { transform: translateX(-50%) translateY(0); }
-
-  @media (max-width: 768px) {
-    .table-head, .order-row { grid-template-columns: 100px 1fr 80px 90px; }
-    .table-head > :nth-child(3), .order-row > :nth-child(3),
-    .table-head > :nth-child(5), .order-row > :nth-child(5) { display: none; }
-  }
 </style>
 </head>
 <body>
 
 <nav>
-  <div style="display:flex;align-items:center">
+  <div style="display:flex;align-items:center;gap:12px">
     <span class="nav-logo">Laundry<span>Lux</span></span>
-    <span class="nav-badge" id="pending-badge">0 pending</span>
+    <span class="badge" id="pending-badge">0 pending</span>
   </div>
-  <a href="index.html" style="color:rgba(255,255,255,0.6);font-size:13px;text-decoration:none">← Back to store</a>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="fb-status"><div class="fb-dot" id="fb-dot"></div><span id="fb-status-text">Connecting…</span></div>
+    <a href="index.html" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none">← Store</a>
+  </div>
 </nav>
 
-<div class="page">
-  <div class="stats-row" id="stats-row">
-    <div class="stat-card"><div class="label">Total Orders</div><div class="value blue" id="stat-total">0</div></div>
-    <div class="stat-card"><div class="label">Pending</div><div class="value amber" id="stat-pending">0</div></div>
-    <div class="stat-card"><div class="label">Confirmed</div><div class="value green" id="stat-confirmed">0</div></div>
-    <div class="stat-card"><div class="label">Revenue</div><div class="value blue" id="stat-revenue">$0</div></div>
-  </div>
-
-  <div class="toolbar">
-    <h2>Orders</h2>
-    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <div class="filter-tabs">
-        <button class="tab active" onclick="setFilter('all',this)">All</button>
-        <button class="tab" onclick="setFilter('pending',this)">Pending</button>
-        <button class="tab" onclick="setFilter('confirmed',this)">Confirmed</button>
-        <button class="tab" onclick="setFilter('shipped',this)">Shipped</button>
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-head">
+      <h2>Orders</h2>
+      <div class="filter-row">
+        <button class="ftab active" onclick="setFilter('all',this)">All</button>
+        <button class="ftab" onclick="setFilter('pending',this)">Pending</button>
+        <button class="ftab" onclick="setFilter('confirmed',this)">Confirmed</button>
+        <button class="ftab" onclick="setFilter('shipped',this)">Shipped</button>
       </div>
-      <button class="clear-btn" onclick="clearOrders()">Clear All</button>
+    </div>
+    <div class="orders-list" id="orders-list">
+      <div class="empty-orders">No orders yet.</div>
     </div>
   </div>
 
-  <div class="orders-table">
-    <div class="table-head">
-      <div>Ref</div>
-      <div>Customer</div>
-      <div>Product</div>
-      <div>Amount</div>
-      <div>Payment</div>
-      <div>Status</div>
+  <div class="main">
+    <div class="no-selection" id="no-selection">
+      <div class="icon">💬</div>
+      <p>Select an order to chat</p>
     </div>
-    <div id="orders-body"></div>
-  </div>
-</div>
-
-<!-- Detail modal -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
-  <div class="modal">
-    <div class="modal-head">
-      <h3 id="modal-ref">Order Details</h3>
-      <button class="modal-close" onclick="closeModal()">&#x2715;</button>
+    <div class="order-panel" id="order-panel" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+      <div class="order-detail" id="order-detail"></div>
+      <div class="chat-area">
+        <div class="chat-head">Customer chat — replies appear instantly</div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-row">
+          <textarea id="admin-input" placeholder="Type a reply… (Enter to send)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAdminMsg();}"></textarea>
+          <button class="send-btn" onclick="sendAdminMsg()">Send</button>
+        </div>
+      </div>
     </div>
-    <div class="modal-body" id="modal-body"></div>
-    <div class="modal-actions" id="modal-actions"></div>
   </div>
 </div>
 
 <div class="toast" id="toast"></div>
 
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getDatabase, ref, push, onChildAdded, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAgqZWNc1f-wRufI7xdezh5rxrY5eT9_kw",
+  authDomain: "laundrylux-f47d7.firebaseapp.com",
+  databaseURL: "https://laundrylux-f47d7-default-rtdb.firebaseio.com",
+  projectId: "laundrylux-f47d7",
+  storageBucket: "laundrylux-f47d7.firebasestorage.app",
+  messagingSenderId: "347247627395",
+  appId: "1:347247627395:web:7081b69ec59875338edfb6"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+onValue(ref(db, '.info/connected'), (snap) => {
+  const ok = snap.val();
+  document.getElementById('fb-dot').className = 'fb-dot' + (ok ? ' connected' : '');
+  document.getElementById('fb-status-text').textContent = ok ? 'Live' : 'Reconnecting…';
+});
+
+window._fbDb  = db;
+window._fbFns = { ref, push, onChildAdded };
+window._adminBoot();
+</script>
+
 <script>
-let orders = [];
-let filter = 'all';
-let activeOrderIdx = null;
+let orders = [], filter = 'all', activeRef = null, chatUnsub = null;
 
-const STATUS_CYCLE = ['pending', 'confirmed', 'shipped', 'cancelled'];
+window._adminBoot = function() {
+  loadOrders();
+  setInterval(pollOrders, 3000);
+};
 
-function load() {
+function loadOrders() {
   orders = JSON.parse(localStorage.getItem('ll_orders') || '[]');
-  // sort newest first
-  orders.sort((a, b) => b.createdAt - a.createdAt);
-  render();
-  updateStats();
+  orders.sort((a,b) => b.createdAt - a.createdAt);
+  renderList();
+  updateBadge();
 }
 
-function save() {
-  localStorage.setItem('ll_orders', JSON.stringify(orders));
+function pollOrders() {
+  const fresh = JSON.parse(localStorage.getItem('ll_orders') || '[]');
+  if (fresh.length !== orders.length) {
+    const prevLen = orders.length;
+    orders = fresh.sort((a,b) => b.createdAt - a.createdAt);
+    renderList();
+    updateBadge();
+    if (fresh.length > prevLen) showToast('New order received!');
+  }
 }
+
+function saveOrders() { localStorage.setItem('ll_orders', JSON.stringify(orders)); }
 
 function setFilter(f, el) {
   filter = f;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  render();
+  renderList();
 }
 
-function render() {
-  const body = document.getElementById('orders-body');
-  const visible = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+function renderList() {
+  const list = document.getElementById('orders-list');
+  const vis = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+  if (!vis.length) { list.innerHTML = '<div class="empty-orders">No ' + (filter==='all'?'':filter+' ') + 'orders yet.</div>'; return; }
+  list.innerHTML = vis.map(o => `
+    <div class="order-item${activeRef===o.ref?' active':''}" onclick="selectOrder('${esc(o.ref)}')">
+      <div class="oi-ref">${esc(o.ref)}</div>
+      <div class="oi-name">${esc(o.customerName)}</div>
+      <div class="oi-product">${esc(o.productName)}</div>
+      <div class="oi-meta">
+        <span class="oi-amount">$${o.amount}</span>
+        <span class="status-pill sp-${o.status}">${o.status}</span>
+      </div>
+    </div>`).join('');
+}
 
-  if (visible.length === 0) {
-    body.innerHTML = `<div class="empty"><div class="icon">📭</div><p>No ${filter === 'all' ? '' : filter + ' '}orders yet.</p><small>Orders placed on the store will appear here.</small></div>`;
-    return;
-  }
+function updateBadge() {
+  document.getElementById('pending-badge').textContent = orders.filter(o=>o.status==='pending').length + ' pending';
+}
 
-  body.innerHTML = visible.map((o, vi) => {
-    const i = orders.indexOf(o);
-    const date = new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-    return `
-    <div class="order-row" onclick="openModal(${i})">
-      <div>
-        <div class="ref">${o.ref || '#' + o.id}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:3px">${date}</div>
+function selectOrder(ref) {
+  activeRef = ref;
+  renderList();
+  const o = orders.find(x => x.ref === ref);
+  if (!o) return;
+
+  document.getElementById('no-selection').style.display = 'none';
+  const panel = document.getElementById('order-panel');
+  panel.style.display = 'flex';
+
+  document.getElementById('order-detail').innerHTML = `
+    <div class="od-top">
+      <div><div class="od-ref">${esc(o.ref)}</div><div class="od-name">${esc(o.customerName)}</div></div>
+      <div class="status-actions">
+        <button class="sa-btn sa-confirm" onclick="setStatus('${esc(o.ref)}','confirmed')">✓ Confirm</button>
+        <button class="sa-btn sa-ship"    onclick="setStatus('${esc(o.ref)}','shipped')">🚚 Shipped</button>
+        <button class="sa-btn sa-cancel"  onclick="setStatus('${esc(o.ref)}','cancelled')">✕ Cancel</button>
       </div>
-      <div>
-        <div class="customer-name">${esc(o.customerName)}</div>
-        <div class="customer-sub">${esc(o.customerPhone)}</div>
-      </div>
-      <div>
-        <div class="product-name">${esc(o.productName)}</div>
-        <div class="product-sub">${esc(o.deliveryArea || '')}</div>
-      </div>
-      <div class="amount">$${o.amount}</div>
-      <div class="method">${esc(o.paymentMethod || '—')}</div>
-      <div>
-        <span class="status-badge status-${o.status}" onclick="cycleStatus(event,${i})">${o.status}</span>
-      </div>
+    </div>
+    <div class="od-grid">
+      <div class="od-field"><div class="od-label">Product</div><div class="od-value">${esc(o.productName)}</div></div>
+      <div class="od-field"><div class="od-label">Amount</div><div class="od-value">$${o.amount} USD</div></div>
+      <div class="od-field"><div class="od-label">Payment</div><div class="od-value">${esc(o.paymentMethod||'—')}</div></div>
+      <div class="od-field"><div class="od-label">Phone</div><div class="od-value"><a href="tel:${esc(o.customerPhone)}">${esc(o.customerPhone)}</a></div></div>
+      <div class="od-field"><div class="od-label">Email</div><div class="od-value"><a href="mailto:${esc(o.customerEmail)}">${esc(o.customerEmail)}</a></div></div>
+      <div class="od-field"><div class="od-label">Address</div><div class="od-value">${esc(o.deliveryAddress||'—')}</div></div>
     </div>`;
-  }).join('');
+
+  loadChat(o.ref);
 }
 
-function updateStats() {
-  const total = orders.length;
-  const pending = orders.filter(o => o.status === 'pending').length;
-  const confirmed = orders.filter(o => o.status === 'confirmed').length;
-  const revenue = orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + Number(o.amount || 0), 0);
-  document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-pending').textContent = pending;
-  document.getElementById('stat-confirmed').textContent = confirmed;
-  document.getElementById('stat-revenue').textContent = '$' + revenue.toLocaleString();
-  document.getElementById('pending-badge').textContent = pending + ' pending';
+function loadChat(roomId) {
+  const msgs = document.getElementById('chat-messages');
+  msgs.innerHTML = '';
+
+  const db = window._fbDb;
+  if (!db) return;
+  const { ref, onChildAdded } = window._fbFns;
+
+  onChildAdded(ref(db, 'chats/' + roomId + '/messages'), (snap) => {
+    const msg = snap.val();
+    if (msg && activeRef === roomId) appendMsg(msg.role, msg.text, msg.time);
+  });
 }
 
-function cycleStatus(e, i) {
-  e.stopPropagation();
-  const cur = STATUS_CYCLE.indexOf(orders[i].status);
-  orders[i].status = STATUS_CYCLE[(cur + 1) % STATUS_CYCLE.length];
-  save();
-  render();
-  updateStats();
-  showToast('Status updated to ' + orders[i].status);
+function appendMsg(role, text, time) {
+  const msgs = document.getElementById('chat-messages');
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap ' + (role === 'admin' ? 'admin' : 'customer');
+  const t = time || new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  wrap.innerHTML = `<div class="msg-bubble">${esc(text).replace(/\n/g,'<br>')}</div><div class="msg-time">${t}</div>`;
+  msgs.appendChild(wrap);
+  msgs.scrollTop = msgs.scrollHeight;
 }
 
-function openModal(i) {
-  activeOrderIdx = i;
-  const o = orders[i];
-  document.getElementById('modal-ref').textContent = o.ref || 'Order #' + o.id;
-  const date = new Date(o.createdAt).toLocaleString();
-  document.getElementById('modal-body').innerHTML = `
-    <div class="detail-row"><span class="dk">Customer</span><span class="dv">${esc(o.customerName)}</span></div>
-    <div class="detail-row"><span class="dk">Phone</span><span class="dv"><a href="tel:${esc(o.customerPhone)}">${esc(o.customerPhone)}</a></span></div>
-    <div class="detail-row"><span class="dk">Email</span><span class="dv"><a href="mailto:${esc(o.customerEmail)}">${esc(o.customerEmail)}</a></span></div>
-    <div class="detail-row"><span class="dk">Product</span><span class="dv">${esc(o.productName)}</span></div>
-    <div class="detail-row"><span class="dk">Amount</span><span class="dv">$${o.amount} USD</span></div>
-    <div class="detail-row"><span class="dk">Payment</span><span class="dv">${esc(o.paymentMethod || '—')}</span></div>
-    <div class="detail-row"><span class="dk">Delivery address</span><span class="dv">${esc(o.deliveryAddress || '—')}</span></div>
-    <div class="detail-row"><span class="dk">Status</span><span class="dv"><span class="status-badge status-${o.status}">${o.status}</span></span></div>
-    <div class="detail-row"><span class="dk">Placed at</span><span class="dv">${date}</span></div>
-  `;
-  document.getElementById('modal-actions').innerHTML = `
-    <button class="btn-confirm" onclick="setStatus(${i},'confirmed')">✓ Confirm</button>
-    <button class="btn-ship" onclick="setStatus(${i},'shipped')">🚚 Shipped</button>
-    <button class="btn-cancel" onclick="setStatus(${i},'cancelled')">✕ Cancel</button>
-  `;
-  document.getElementById('modal-overlay').classList.add('open');
+async function sendAdminMsg() {
+  const input = document.getElementById('admin-input');
+  const text = input.value.trim();
+  if (!text || !activeRef) return;
+  input.value = '';
+
+  const db = window._fbDb;
+  if (!db) { showToast('Not connected'); return; }
+  const { ref, push } = window._fbFns;
+  const time = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  try {
+    await push(ref(db, 'chats/' + activeRef + '/messages'), { role:'admin', text, time, ts:Date.now() });
+    appendMsg('admin', text, time);
+  } catch(e) { showToast('Failed: ' + e.message); }
 }
 
-function setStatus(i, status) {
-  orders[i].status = status;
-  save();
-  render();
-  updateStats();
-  closeModal();
-  showToast('Order marked as ' + status);
+function setStatus(ref, status) {
+  const o = orders.find(x => x.ref === ref);
+  if (!o) return;
+  o.status = status;
+  saveOrders();
+  renderList();
+  updateBadge();
+  selectOrder(ref);
+  showToast('Marked as ' + status);
 }
 
-function closeModal(e) {
-  if (e && e.target !== document.getElementById('modal-overlay')) return;
-  document.getElementById('modal-overlay').classList.remove('open');
-}
-
-function clearOrders() {
-  if (!confirm('Delete all orders? This cannot be undone.')) return;
-  localStorage.removeItem('ll_orders');
-  orders = [];
-  render();
-  updateStats();
-  showToast('All orders cleared.');
-}
-
-function esc(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
 }
-
-// Auto-refresh every 5s in case store tab is open simultaneously
-setInterval(load, 5000);
-load();
 </script>
 </body>
 </html>
