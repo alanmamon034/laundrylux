@@ -972,11 +972,11 @@ async function cfSubmitAndChat() {
     + '\nProduct: ' + cfProduct.name
     + '\nAmount: $' + cfProduct.price + ' USD'
     + '\nPayment: ' + cfPayMethod
-    + '\nName: ' + name
-    + '\nPhone: ' + phone
+    + '\nName: ' + name + '  |  Phone: ' + phone
     + '\nAddress: ' + address + (city ? ', ' + city : '')
     + '\nEmail: ' + email
-    + '\n\nTo reply, start your message with: [' + ordRef + '] your reply here';
+    + '\n\nREPLY TO CUSTOMER: Send a new message to this bot starting with:'
+    + '\n[' + ordRef + '] your message here';
   tgSend(tgOrderMsg);
 
 }
@@ -1016,10 +1016,11 @@ async function cfPollMessages() {
       _lastUpdateId = upd.update_id;
       const msg = upd.message;
       if (!msg || !msg.text) return;
-      // Only show reply if it starts with [ORDREF] so right customer gets it
       const tag = '[' + cfRoomId + ']';
-      if (msg.text.indexOf(tag) === 0) {
-        const reply = msg.text.replace(tag, '').trim();
+      const text = msg.text;
+      // Match reply if it contains the order ref anywhere in the message
+      if (text.indexOf(tag) !== -1) {
+        const reply = text.replace(tag, '').trim();
         const time = new Date(msg.date * 1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
         cfAddMsg('admin', reply, time);
       }
