@@ -3,886 +3,303 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LaundryLux Admin</title>
+<title>LaundryLux — Admin</title>
 <style>
   :root {
-    --dark: #1A1A2E; --dark2: #16213E; --dark3: #0F3460;
-    --accent: #2563EB; --green: #10B981; --amber: #F59E0B;
-    --red: #EF4444; --purple: #8B5CF6;
-    --off-white: #F8F6F1; --border: #E5E3DE;
-    --muted: #6B7280; --card: #FFFFFF;
-    --sidebar-w: 220px;
+    --dark: #1A1A2E; --dark2: #16213E; --accent: #2563EB; --amber: #F59E0B;
+    --off-white: #F8F6F1; --muted: #6B7280; --border: #E5E3DE; --card-bg: #FFFFFF;
+    --green: #10B981; --red: #EF4444;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F1F0EB; color: var(--dark); display: flex; min-height: 100vh; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--off-white); color: var(--dark); min-height: 100vh; }
 
-  /* LOGIN */
-  .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; width: 100%; background: var(--dark); }
-  .login-box { background: #fff; border-radius: 16px; padding: 40px 36px; width: 100%; max-width: 380px; }
-  .login-logo { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
-  .login-logo span { color: var(--accent); }
-  .login-sub { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
-  .login-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 6px; display: block; }
-  .login-input { width: 100%; border: 1.5px solid var(--border); border-radius: 9px; padding: 11px 14px; font-size: 14px; outline: none; margin-bottom: 14px; font-family: inherit; }
-  .login-input:focus { border-color: var(--accent); }
-  .login-btn { width: 100%; background: var(--accent); color: #fff; border: none; padding: 13px; border-radius: 9px; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 4px; }
-  .login-error { color: var(--red); font-size: 13px; margin-top: 8px; display: none; }
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--dark); color: #fff;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 5%; height: 60px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .nav-logo { font-size: 18px; font-weight: 700; letter-spacing: -0.5px; color: #fff; }
+  .nav-logo span { color: var(--accent); }
+  .nav-badge { background: var(--amber); color: var(--dark); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-left: 10px; }
 
-  /* LAYOUT */
-  .app { display: none; width: 100%; }
-  .app.visible { display: flex; }
+  .page { max-width: 1100px; margin: 0 auto; padding: 36px 24px; }
 
-  /* SIDEBAR */
-  .sidebar { width: var(--sidebar-w); background: var(--dark); color: #fff; display: flex; flex-direction: column; min-height: 100vh; position: fixed; top: 0; left: 0; bottom: 0; z-index: 10; }
-  .sidebar-logo { padding: 22px 20px 18px; font-size: 18px; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.08); }
-  .sidebar-logo span { color: var(--accent); }
-  .sidebar-logo small { display: block; font-size: 10px; font-weight: 400; color: rgba(255,255,255,0.4); margin-top: 2px; letter-spacing: 1px; text-transform: uppercase; }
-  .sidebar-nav { flex: 1; padding: 12px 10px; }
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; font-size: 14px; color: rgba(255,255,255,0.65); cursor: pointer; margin-bottom: 2px; transition: all 0.15s; text-decoration: none; }
-  .nav-item:hover { background: rgba(255,255,255,0.07); color: #fff; }
-  .nav-item.active { background: var(--accent); color: #fff; }
-  .nav-item svg { flex-shrink: 0; }
-  .nav-badge { margin-left: auto; background: var(--amber); color: var(--dark); border-radius: 999px; font-size: 10px; font-weight: 700; padding: 2px 7px; }
-  .sidebar-footer { padding: 16px 10px; border-top: 1px solid rgba(255,255,255,0.08); }
-  .sidebar-user { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 8px; }
-  .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #fff; flex-shrink: 0; }
-  .user-name { font-size: 13px; color: rgba(255,255,255,0.8); font-weight: 500; }
-  .user-role { font-size: 11px; color: rgba(255,255,255,0.4); }
-  .logout-btn { width: 100%; margin-top: 8px; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.6); border: none; padding: 9px; border-radius: 8px; font-size: 13px; cursor: pointer; }
-  .logout-btn:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .stat-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; }
+  .stat-card .label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; font-weight: 600; margin-bottom: 6px; }
+  .stat-card .value { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+  .stat-card .value.green { color: var(--green); }
+  .stat-card .value.amber { color: var(--amber); }
+  .stat-card .value.blue { color: var(--accent); }
 
-  /* MAIN */
-  .main { margin-left: var(--sidebar-w); flex: 1; display: flex; flex-direction: column; min-height: 100vh; }
-  .topbar { background: #fff; border-bottom: 1px solid var(--border); padding: 0 28px; height: 60px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 5; }
-  .topbar-title { font-size: 17px; font-weight: 700; }
-  .topbar-right { display: flex; align-items: center; gap: 12px; }
-  .topbar-date { font-size: 12px; color: var(--muted); }
-  .store-link { font-size: 12px; color: var(--accent); text-decoration: none; font-weight: 500; }
+  .toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+  .toolbar h2 { font-size: 20px; font-weight: 700; }
+  .filter-tabs { display: flex; gap: 6px; }
+  .tab { padding: 6px 16px; border-radius: 999px; font-size: 13px; font-weight: 500; border: 1.5px solid var(--border); background: var(--card-bg); color: var(--dark); cursor: pointer; transition: all 0.15s; }
+  .tab.active, .tab:hover { background: var(--dark); color: #fff; border-color: var(--dark); }
+  .clear-btn { font-size: 12px; color: var(--red); border: 1.5px solid var(--red); background: none; padding: 5px 14px; border-radius: 999px; cursor: pointer; font-weight: 600; }
+  .clear-btn:hover { background: #FEE2E2; }
 
-  /* PAGES */
-  .page { display: none; padding: 28px; }
-  .page.active { display: block; }
+  .orders-table { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+  .table-head { display: grid; grid-template-columns: 120px 1fr 1fr 100px 110px 110px; gap: 12px; padding: 12px 20px; background: var(--off-white); border-bottom: 1px solid var(--border); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); }
+  .order-row { display: grid; grid-template-columns: 120px 1fr 1fr 100px 110px 110px; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); align-items: center; transition: background 0.1s; }
+  .order-row:last-child { border-bottom: none; }
+  .order-row:hover { background: #FAFAF8; }
 
-  /* STATS ROW */
-  .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
-  .stat-card { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid var(--border); }
-  .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 8px; }
-  .stat-val { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 4px; }
-  .stat-sub { font-size: 12px; color: var(--muted); }
-  .stat-val.green { color: var(--green); }
-  .stat-val.amber { color: var(--amber); }
-  .stat-val.blue { color: var(--accent); }
+  .ref { font-size: 12px; font-weight: 700; color: var(--accent); font-family: monospace; }
+  .customer-name { font-size: 14px; font-weight: 600; }
+  .customer-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .product-name { font-size: 13px; font-weight: 500; }
+  .product-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .amount { font-size: 15px; font-weight: 700; }
+  .method { font-size: 12px; color: var(--muted); font-weight: 500; }
 
-  /* SECTION */
-  .section { background: var(--card); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px; overflow: hidden; }
-  .section-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
-  .section-head h3 { font-size: 15px; font-weight: 700; }
-  .section-head-right { display: flex; gap: 8px; align-items: center; }
+  .status-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; border: none; font-family: inherit; }
+  .status-pending  { background: #FEF3C7; color: #92400E; }
+  .status-confirmed { background: #D1FAE5; color: #065F46; }
+  .status-shipped  { background: #DBEAFE; color: #1E40AF; }
+  .status-cancelled { background: #FEE2E2; color: #991B1B; }
 
-  /* TABLE */
-  .table-wrap { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th { text-align: left; padding: 10px 16px; font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; border-bottom: 1px solid var(--border); background: #FAFAF8; }
-  td { padding: 13px 16px; border-bottom: 1px solid #F5F4F0; vertical-align: middle; }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background: #FAFAF8; }
+  .action-btn { background: var(--accent); color: #fff; border: none; padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+  .action-btn:hover { opacity: 0.85; }
 
-  /* BADGES */
-  .badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
-  .badge-green { background: #D1FAE5; color: #065F46; }
-  .badge-amber { background: #FEF3C7; color: #92400E; }
-  .badge-red { background: #FEE2E2; color: #991B1B; }
-  .badge-blue { background: #DBEAFE; color: #1E40AF; }
-  .badge-purple { background: #EDE9FE; color: #5B21B6; }
-  .badge-gray { background: #F3F4F6; color: #374151; }
+  .empty { text-align: center; padding: 72px 24px; color: var(--muted); }
+  .empty .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty p { font-size: 15px; }
+  .empty small { font-size: 13px; color: #9CA3AF; margin-top: 6px; display: block; }
 
-  /* BUTTONS */
-  .btn { padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: opacity 0.15s; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--dark); }
-  .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
-  .btn-danger { background: #FEE2E2; color: var(--red); }
-  .btn:hover { opacity: 0.85; }
-
-  /* SEARCH/FILTER BAR */
-  .filter-bar { display: flex; gap: 10px; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
-  .search-input { flex: 1; min-width: 200px; border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; font-family: inherit; }
-  .search-input:focus { border-color: var(--accent); }
-  .filter-select { border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 12px; font-size: 13px; outline: none; background: #fff; cursor: pointer; font-family: inherit; }
-
-  /* ORDER DETAIL DRAWER */
-  .drawer-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 50; }
-  .drawer-overlay.open { display: block; }
-  .drawer { position: fixed; right: -520px; top: 0; bottom: 0; width: 480px; background: #fff; z-index: 51; transition: right 0.3s ease; display: flex; flex-direction: column; box-shadow: -4px 0 24px rgba(0,0,0,0.1); }
-  .drawer.open { right: 0; }
-  .drawer-head { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-  .drawer-head h3 { font-size: 16px; font-weight: 700; }
-  .drawer-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted); }
-  .drawer-body { flex: 1; overflow-y: auto; padding: 24px; }
-  .drawer-section { margin-bottom: 24px; }
-  .drawer-section h4 { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); margin-bottom: 12px; }
-  .detail-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #F5F4F0; font-size: 14px; }
+  /* Detail modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 300; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 16px; width: 94%; max-width: 480px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); }
+  .modal-head { background: var(--dark); color: #fff; padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; }
+  .modal-head h3 { font-size: 15px; font-weight: 700; }
+  .modal-close { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 20px; cursor: pointer; }
+  .modal-body { padding: 22px; }
+  .detail-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
   .detail-row:last-child { border-bottom: none; }
-  .detail-label { color: var(--muted); }
-  .detail-val { font-weight: 500; text-align: right; }
-  .drawer-foot { padding: 20px 24px; border-top: 1px solid var(--border); display: flex; gap: 10px; }
+  .detail-row .dk { color: var(--muted); font-weight: 500; }
+  .detail-row .dv { font-weight: 600; text-align: right; max-width: 240px; word-break: break-word; }
+  .modal-actions { display: flex; gap: 10px; padding: 0 22px 22px; flex-wrap: wrap; }
+  .modal-actions button { flex: 1; padding: 11px; border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; min-width: 100px; }
+  .btn-confirm { background: var(--green); color: #fff; }
+  .btn-ship { background: var(--accent); color: #fff; }
+  .btn-cancel { background: #FEE2E2; color: var(--red); }
 
-  /* PRODUCT FORM */
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 20px; }
-  .form-field { display: flex; flex-direction: column; gap: 6px; }
-  .form-field.full { grid-column: 1 / -1; }
-  .form-label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
-  .form-input { border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 14px; outline: none; font-family: inherit; }
-  .form-input:focus { border-color: var(--accent); }
-  .form-select { border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 14px; outline: none; background: #fff; font-family: inherit; }
-  .form-actions { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
-
-  /* EMPTY STATE */
-  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
-  .empty-icon { font-size: 48px; margin-bottom: 12px; }
-  .empty-state h4 { font-size: 16px; font-weight: 600; color: var(--dark); margin-bottom: 6px; }
-  .empty-state p { font-size: 14px; }
-
-  /* TOAST */
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--dark); color: #fff; padding: 11px 22px; border-radius: 9px; font-size: 14px; font-weight: 500; z-index: 100; transition: transform 0.3s; pointer-events: none; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--dark); color: #fff; padding: 11px 22px; border-radius: 10px; font-size: 14px; font-weight: 500; z-index: 500; transition: transform 0.3s; pointer-events: none; }
   .toast.show { transform: translateX(-50%) translateY(0); }
 
-  /* PRODUCT IMAGE PREVIEW */
-  .product-thumb { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; background: var(--off-white); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-  .product-thumb img { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; }
-  .product-info { display: flex; align-items: center; gap: 10px; }
+  @media (max-width: 768px) {
+    .table-head, .order-row { grid-template-columns: 100px 1fr 80px 90px; }
+    .table-head > :nth-child(3), .order-row > :nth-child(3),
+    .table-head > :nth-child(5), .order-row > :nth-child(5) { display: none; }
+  }
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div class="login-screen" id="login-screen">
-  <div class="login-box">
-    <div class="login-logo">Laundry<span>Lux</span></div>
-    <div class="login-sub">Admin panel — sign in to continue</div>
-    <label class="login-label">Username</label>
-    <input class="login-input" id="login-user" type="text" placeholder="admin" />
-    <label class="login-label">Password</label>
-    <input class="login-input" id="login-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
-    <button class="login-btn" onclick="doLogin()">Sign in</button>
-    <div class="login-error" id="login-error">Incorrect username or password.</div>
+<nav>
+  <div style="display:flex;align-items:center">
+    <span class="nav-logo">Laundry<span>Lux</span></span>
+    <span class="nav-badge" id="pending-badge">0 pending</span>
+  </div>
+  <a href="index.html" style="color:rgba(255,255,255,0.6);font-size:13px;text-decoration:none">← Back to store</a>
+</nav>
+
+<div class="page">
+  <div class="stats-row" id="stats-row">
+    <div class="stat-card"><div class="label">Total Orders</div><div class="value blue" id="stat-total">0</div></div>
+    <div class="stat-card"><div class="label">Pending</div><div class="value amber" id="stat-pending">0</div></div>
+    <div class="stat-card"><div class="label">Confirmed</div><div class="value green" id="stat-confirmed">0</div></div>
+    <div class="stat-card"><div class="label">Revenue</div><div class="value blue" id="stat-revenue">$0</div></div>
+  </div>
+
+  <div class="toolbar">
+    <h2>Orders</h2>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div class="filter-tabs">
+        <button class="tab active" onclick="setFilter('all',this)">All</button>
+        <button class="tab" onclick="setFilter('pending',this)">Pending</button>
+        <button class="tab" onclick="setFilter('confirmed',this)">Confirmed</button>
+        <button class="tab" onclick="setFilter('shipped',this)">Shipped</button>
+      </div>
+      <button class="clear-btn" onclick="clearOrders()">Clear All</button>
+    </div>
+  </div>
+
+  <div class="orders-table">
+    <div class="table-head">
+      <div>Ref</div>
+      <div>Customer</div>
+      <div>Product</div>
+      <div>Amount</div>
+      <div>Payment</div>
+      <div>Status</div>
+    </div>
+    <div id="orders-body"></div>
   </div>
 </div>
 
-<!-- APP -->
-<div class="app" id="app">
-
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      Laundry<span>Lux</span>
-      <small>Admin Panel</small>
+<!-- Detail modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="modal-ref">Order Details</h3>
+      <button class="modal-close" onclick="closeModal()">&#x2715;</button>
     </div>
-    <nav class="sidebar-nav">
-      <a class="nav-item active" onclick="showPage('dashboard',this)">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
-        Dashboard
-      </a>
-      <a class="nav-item" onclick="showPage('orders',this)">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-        Orders
-        <span class="nav-badge" id="pending-badge">0</span>
-      </a>
-      <a class="nav-item" onclick="showPage('products',this)">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 7H4a2 2 0 00-2 2v6a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
-        Products
-      </a>
-      <a class="nav-item" onclick="showPage('messages',this)">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-        Live Chat
-      </a>
-      <a class="nav-item" onclick="showPage('delivery',this)">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="1"/><path d="M16 8h4l3 3v5h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-        Deliveries
-      </a>
-    </nav>
-    <div class="sidebar-footer">
-      <div class="sidebar-user">
-        <div class="user-avatar">A</div>
-        <div>
-          <div class="user-name">Admin</div>
-          <div class="user-role">LaundryLux</div>
-        </div>
-      </div>
-      <button class="logout-btn" onclick="doLogout()">Sign out</button>
-    </div>
-  </aside>
-
-  <!-- MAIN -->
-  <main class="main">
-    <div class="topbar">
-      <div class="topbar-title" id="page-title">Dashboard</div>
-      <div class="topbar-right">
-        <span class="topbar-date" id="today-date"></span>
-        <a href="index.html" target="_blank" class="store-link">View store ↗</a>
-      </div>
-    </div>
-
-    <!-- DASHBOARD PAGE -->
-    <div class="page active" id="page-dashboard">
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-label">Total Orders</div>
-          <div class="stat-val blue" id="stat-total">0</div>
-          <div class="stat-sub">All time</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Pending Delivery</div>
-          <div class="stat-val amber" id="stat-pending">0</div>
-          <div class="stat-sub">Need action</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Delivered</div>
-          <div class="stat-val green" id="stat-delivered">0</div>
-          <div class="stat-sub">Completed</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Revenue</div>
-          <div class="stat-val green" id="stat-revenue">$0</div>
-          <div class="stat-sub">Total USD</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Products Listed</div>
-          <div class="stat-val blue" id="stat-products">0</div>
-          <div class="stat-sub">Active listings</div>
-        </div>
-      </div>
-
-      <div class="section">
-        <div class="section-head">
-          <h3>Recent Orders</h3>
-          <button class="btn btn-outline btn-sm" onclick="showPage('orders', document.querySelector('[onclick*=orders]'))">View all</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Order</th><th>Customer</th><th>Product</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
-            <tbody id="recent-orders-body"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- ORDERS PAGE -->
-    <div class="page" id="page-orders">
-      <div class="section">
-        <div class="section-head">
-          <h3>All Orders</h3>
-          <div class="section-head-right">
-            <button class="btn btn-primary btn-sm" onclick="openAddOrder()">+ Add order</button>
-          </div>
-        </div>
-        <div class="filter-bar">
-          <input class="search-input" placeholder="Search by name, phone, product..." oninput="filterOrders(this.value)" />
-          <select class="filter-select" onchange="filterOrderStatus(this.value)">
-            <option value="all">All statuses</option>
-            <option value="paid">Paid</option>
-            <option value="pending">Pending delivery</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Order #</th><th>Customer</th><th>Product</th><th>Amount</th><th>Phone</th><th>Area</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
-            <tbody id="orders-body"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- PRODUCTS PAGE -->
-    <div class="page" id="page-products">
-      <div class="section">
-        <div class="section-head">
-          <h3>Product Listings</h3>
-          <button class="btn btn-primary btn-sm" onclick="openAddProduct()">+ Add product</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Grade</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="products-body"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Add / Edit Product Form -->
-      <div class="section" id="product-form-section" style="display:none">
-        <div class="section-head">
-          <h3 id="product-form-title">Add Product</h3>
-          <button class="btn btn-outline btn-sm" onclick="closeProductForm()">Cancel</button>
-        </div>
-        <div class="form-grid">
-          <div class="form-field full">
-            <label class="form-label">Product Name</label>
-            <input class="form-input" id="pf-name" placeholder="e.g. LG Front-Load Washer" />
-          </div>
-          <div class="form-field">
-            <label class="form-label">Category</label>
-            <select class="form-select" id="pf-category">
-              <option value="washer">Washers & Dryers</option>
-              <option value="phone">Phones</option>
-              <option value="laptop">Laptops</option>
-              <option value="tablet">Tablets</option>
-              <option value="audio">Audio</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Grade</label>
-            <select class="form-select" id="pf-grade">
-              <option value="A">Grade A — Like New</option>
-              <option value="B">Grade B — Good</option>
-              <option value="C">Grade C — Functional</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label class="form-label">Price (USD)</label>
-            <input class="form-input" id="pf-price" type="number" placeholder="850" />
-          </div>
-          <div class="form-field">
-            <label class="form-label">Stock quantity</label>
-            <input class="form-input" id="pf-stock" type="number" placeholder="1" />
-          </div>
-          <div class="form-field full">
-            <label class="form-label">Specs / Description</label>
-            <input class="form-input" id="pf-specs" placeholder="e.g. LG Direct Drive · TrueSteam · 10kg" />
-          </div>
-          <div class="form-field full">
-            <label class="form-label">What's included</label>
-            <input class="form-input" id="pf-includes" placeholder="e.g. ✓ Pedestal drawers · Water hoses" />
-          </div>
-          <div class="form-field full">
-            <label class="form-label">Product Photos (up to 7)</label>
-            <input type="file" class="form-input" id="pf-images" accept="image/*" multiple style="padding:8px;cursor:pointer" />
-            <div id="pf-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"></div>
-            <div style="font-size:11px;color:var(--muted);margin-top:4px">Photos are compressed automatically. First photo is the main card image.</div>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button class="btn btn-outline" onclick="closeProductForm()">Cancel</button>
-          <button class="btn btn-primary" onclick="saveProduct()">Save product</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- DELIVERY PAGE -->
-    <div class="page" id="page-delivery">
-      <div class="section">
-        <div class="section-head">
-          <h3>Pending Deliveries</h3>
-          <span class="badge badge-amber" id="delivery-count">0 pending</span>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Order #</th><th>Customer</th><th>Phone</th><th>Area</th><th>Product</th><th>Amount</th><th>Scheduled</th><th>Actions</th></tr></thead>
-            <tbody id="delivery-body"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- MESSAGES PAGE -->
-    <div class="page" id="page-messages">
-      <div class="section">
-        <div class="section-head">
-          <h3>Live Chat — Tawk.to</h3>
-          <span class="badge badge-green">● Connected</span>
-        </div>
-        <div style="padding:20px">
-          <p style="font-size:14px;color:var(--muted);margin-bottom:20px">
-            Manage all customer chats from the Tawk.to dashboard below. You can also reply from the 
-            <a href="https://dashboard.tawk.to" target="_blank" style="color:var(--accent)">Tawk.to web dashboard</a> 
-            or download their free mobile app to chat on the go.
-          </p>
-          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px">
-            <a href="https://dashboard.tawk.to" target="_blank" style="text-decoration:none">
-              <div style="background:var(--accent);color:#fff;border-radius:12px;padding:20px;text-align:center">
-                <div style="font-size:28px;margin-bottom:8px">💬</div>
-                <div style="font-weight:700;margin-bottom:4px">Open Chat Dashboard</div>
-                <div style="font-size:12px;opacity:0.85">Reply to customers</div>
-              </div>
-            </a>
-            <a href="https://apps.apple.com/app/tawk-to/id950665890" target="_blank" style="text-decoration:none">
-              <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center">
-                <div style="font-size:28px;margin-bottom:8px">📱</div>
-                <div style="font-weight:700;margin-bottom:4px">iOS App</div>
-                <div style="font-size:12px;color:var(--muted)">Chat from your phone</div>
-              </div>
-            </a>
-            <a href="https://play.google.com/store/apps/details?id=to.tawk.app" target="_blank" style="text-decoration:none">
-              <div style="background:#fff;border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center">
-                <div style="font-size:28px;margin-bottom:8px">🤖</div>
-                <div style="font-weight:700;margin-bottom:4px">Android App</div>
-                <div style="font-size:12px;color:var(--muted)">Chat from your phone</div>
-              </div>
-            </a>
-          </div>
-          <div style="background:var(--off-white);border-radius:12px;padding:20px;font-size:14px">
-            <div style="font-weight:700;margin-bottom:12px">💡 Tips</div>
-            <div style="color:var(--muted);display:flex;flex-direction:column;gap:8px">
-              <span>✓ Set your <strong>online hours</strong> in Tawk.to so customers know when you're available</span>
-              <span>✓ Use <strong>canned responses</strong> for common questions like delivery time and pricing</span>
-              <span>✓ Enable <strong>email notifications</strong> so you never miss a message</span>
-              <span>✓ The chat bubble appears on your store automatically — no extra setup needed</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </main>
-</div>
-
-<!-- ORDER DETAIL DRAWER -->
-<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
-<div class="drawer" id="order-drawer">
-  <div class="drawer-head">
-    <h3 id="drawer-title">Order Details</h3>
-    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions" id="modal-actions"></div>
   </div>
-  <div class="drawer-body" id="drawer-body"></div>
-  <div class="drawer-foot" id="drawer-foot"></div>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── AUTH ───────────────────────────────────────────
-const ADMIN_USER = 'Viktacher';
-const ADMIN_PASS = 'Cheru2801$$'; // Change this to your own password
+let orders = [];
+let filter = 'all';
+let activeOrderIdx = null;
 
-function doLogin() {
-  const u = document.getElementById('login-user').value.trim();
-  const p = document.getElementById('login-pass').value;
-  if (u === ADMIN_USER && p === ADMIN_PASS) {
-    localStorage.setItem('ll_admin', '1');
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').classList.add('visible');
-    init();
-  } else {
-    document.getElementById('login-error').style.display = 'block';
-  }
-}
+const STATUS_CYCLE = ['pending', 'confirmed', 'shipped', 'cancelled'];
 
-function doLogout() {
-  localStorage.removeItem('ll_admin');
-  location.reload();
-}
-
-// ─── STATE ──────────────────────────────────────────
-let orders = JSON.parse(localStorage.getItem('ll_orders') || '[]');
-let products = JSON.parse(localStorage.getItem('ll_products') || JSON.stringify([
-  { id:1, name:'LG Front-Load Washer & Dryer Set', category:'washer', grade:'B', price:850, stock:1, specs:'LG Direct Drive · TrueSteam · Sensor Dry · Front-load pair', includes:'✓ Pedestal drawers · Water hoses · All accessories', status:'active' },
-  { id:2, name:'iPhone 14 Pro', category:'phone', grade:'A', price:1200, stock:3, specs:'256GB · Space Black · Battery 95%', includes:'', status:'active' },
-  { id:3, name:'MacBook Pro 14"', category:'laptop', grade:'A', price:1500, stock:2, specs:'M1 Pro · 16GB RAM · 512GB SSD', includes:'', status:'active' },
-  { id:4, name:'Dell XPS 13', category:'laptop', grade:'B', price:750, stock:4, specs:'i7 11th Gen · 16GB · 512GB SSD', includes:'', status:'active' },
-  { id:5, name:'iPad Air 5th Gen', category:'tablet', grade:'A', price:580, stock:3, specs:'64GB · Wi-Fi · Starlight', includes:'', status:'active' },
-]));
-let editingProductId = null;
-let currentOrderFilter = 'all';
-let currentOrderSearch = '';
-
-function saveOrders() { localStorage.setItem('ll_orders', JSON.stringify(orders)); }
-function saveProducts() { localStorage.setItem('ll_products', JSON.stringify(products)); }
-
-// ─── INIT ────────────────────────────────────────────
-function init() {
-  document.getElementById('today-date').textContent = new Date().toLocaleDateString('en-KE', { weekday:'short', day:'numeric', month:'long', year:'numeric' });
+function load() {
+  orders = JSON.parse(localStorage.getItem('ll_orders') || '[]');
+  // sort newest first
+  orders.sort((a, b) => b.createdAt - a.createdAt);
+  render();
   updateStats();
-  renderRecentOrders();
-  renderOrders();
-  renderProducts();
-  renderDeliveries();
 }
 
-// ─── NAV ─────────────────────────────────────────────
-function showPage(id, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('page-' + id).classList.add('active');
-  if (el) el.classList.add('active');
-  const titles = { dashboard:'Dashboard', orders:'Orders', products:'Products', delivery:'Deliveries', messages:'Live Chat' };
-  document.getElementById('page-title').textContent = titles[id] || id;
+function save() {
+  localStorage.setItem('ll_orders', JSON.stringify(orders));
 }
 
-// ─── STATS ───────────────────────────────────────────
+function setFilter(f, el) {
+  filter = f;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  render();
+}
+
+function render() {
+  const body = document.getElementById('orders-body');
+  const visible = filter === 'all' ? orders : orders.filter(o => o.status === filter);
+
+  if (visible.length === 0) {
+    body.innerHTML = `<div class="empty"><div class="icon">📭</div><p>No ${filter === 'all' ? '' : filter + ' '}orders yet.</p><small>Orders placed on the store will appear here.</small></div>`;
+    return;
+  }
+
+  body.innerHTML = visible.map((o, vi) => {
+    const i = orders.indexOf(o);
+    const date = new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return `
+    <div class="order-row" onclick="openModal(${i})">
+      <div>
+        <div class="ref">${o.ref || '#' + o.id}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:3px">${date}</div>
+      </div>
+      <div>
+        <div class="customer-name">${esc(o.customerName)}</div>
+        <div class="customer-sub">${esc(o.customerPhone)}</div>
+      </div>
+      <div>
+        <div class="product-name">${esc(o.productName)}</div>
+        <div class="product-sub">${esc(o.deliveryArea || '')}</div>
+      </div>
+      <div class="amount">$${o.amount}</div>
+      <div class="method">${esc(o.paymentMethod || '—')}</div>
+      <div>
+        <span class="status-badge status-${o.status}" onclick="cycleStatus(event,${i})">${o.status}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function updateStats() {
-  const pending = orders.filter(o => o.status === 'pending' || o.status === 'paid').length;
-  const delivered = orders.filter(o => o.status === 'delivered').length;
-  const revenue = orders.filter(o => o.status !== 'cancelled').reduce((s,o) => s + (parseFloat(o.amount)||0), 0);
-  document.getElementById('stat-total').textContent = orders.length;
+  const total = orders.length;
+  const pending = orders.filter(o => o.status === 'pending').length;
+  const confirmed = orders.filter(o => o.status === 'confirmed').length;
+  const revenue = orders.filter(o => o.status !== 'cancelled').reduce((s, o) => s + Number(o.amount || 0), 0);
+  document.getElementById('stat-total').textContent = total;
   document.getElementById('stat-pending').textContent = pending;
-  document.getElementById('stat-delivered').textContent = delivered;
+  document.getElementById('stat-confirmed').textContent = confirmed;
   document.getElementById('stat-revenue').textContent = '$' + revenue.toLocaleString();
-  document.getElementById('stat-products').textContent = products.filter(p=>p.status==='active').length;
-  document.getElementById('pending-badge').textContent = pending;
-  document.getElementById('delivery-count').textContent = pending + ' pending';
+  document.getElementById('pending-badge').textContent = pending + ' pending';
 }
 
-// ─── HELPERS ─────────────────────────────────────────
-function statusBadge(s) {
-  const map = { paid:'badge-blue', pending:'badge-amber', delivered:'badge-green', cancelled:'badge-red', 'in transit':'badge-purple' };
-  return `<span class="badge ${map[s]||'badge-gray'}">${s}</span>`;
-}
-function gradeBadge(g) {
-  const map = { A:'badge-green', B:'badge-amber', C:'badge-red' };
-  return `<span class="badge ${map[g]||'badge-gray'}">Grade ${g}</span>`;
-}
-function fmtDate(ts) {
-  return new Date(ts).toLocaleDateString('en-KE', { day:'numeric', month:'short', year:'numeric' });
-}
-function orderNum(id) { return '#LL' + String(id).padStart(4,'0'); }
-
-// ─── ORDERS ──────────────────────────────────────────
-function renderRecentOrders() {
-  const tbody = document.getElementById('recent-orders-body');
-  const recent = [...orders].reverse().slice(0,5);
-  if (!recent.length) {
-    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><div class="empty-icon">📋</div><h4>No orders yet</h4><p>Orders will appear here once customers purchase.</p></div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = recent.map(o => `
-    <tr onclick="openOrder(${o.id})" style="cursor:pointer">
-      <td><strong>${orderNum(o.id)}</strong></td>
-      <td>${o.customerName}</td>
-      <td>${o.productName}</td>
-      <td>$${o.amount}</td>
-      <td>${statusBadge(o.status)}</td>
-      <td>${fmtDate(o.createdAt)}</td>
-    </tr>
-  `).join('');
+function cycleStatus(e, i) {
+  e.stopPropagation();
+  const cur = STATUS_CYCLE.indexOf(orders[i].status);
+  orders[i].status = STATUS_CYCLE[(cur + 1) % STATUS_CYCLE.length];
+  save();
+  render();
+  updateStats();
+  showToast('Status updated to ' + orders[i].status);
 }
 
-function getFilteredOrders() {
-  return orders.filter(o => {
-    const matchStatus = currentOrderFilter === 'all' || o.status === currentOrderFilter;
-    const q = currentOrderSearch.toLowerCase();
-    const matchSearch = !q || o.customerName?.toLowerCase().includes(q) || o.customerPhone?.includes(q) || o.productName?.toLowerCase().includes(q);
-    return matchStatus && matchSearch;
-  }).reverse();
-}
-
-function renderOrders() {
-  const tbody = document.getElementById('orders-body');
-  const filtered = getFilteredOrders();
-  if (!filtered.length) {
-    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">📋</div><h4>No orders found</h4><p>Try adjusting your search or filters.</p></div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = filtered.map(o => `
-    <tr>
-      <td><strong style="cursor:pointer;color:var(--accent)" onclick="openOrder(${o.id})">${orderNum(o.id)}</strong></td>
-      <td>${o.customerName}</td>
-      <td>${o.productName}</td>
-      <td>$${o.amount}</td>
-      <td>${o.customerPhone || '—'}</td>
-      <td>${o.deliveryArea || '—'}</td>
-      <td>
-        <select onchange="updateOrderStatus(${o.id}, this.value)" style="border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;background:#fff;cursor:pointer">
-          ${['paid','pending','in transit','delivered','cancelled'].map(s=>`<option ${o.status===s?'selected':''} value="${s}">${s.charAt(0).toUpperCase()+s.slice(1)}</option>`).join('')}
-        </select>
-      </td>
-      <td>${fmtDate(o.createdAt)}</td>
-      <td>
-        <button class="btn btn-outline btn-sm" onclick="openOrder(${o.id})">View</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteOrder(${o.id})">Del</button>
-      </td>
-    </tr>
-  `).join('');
-}
-
-function filterOrders(q) { currentOrderSearch = q; renderOrders(); }
-function filterOrderStatus(s) { currentOrderFilter = s; renderOrders(); }
-
-function updateOrderStatus(id, status) {
-  const o = orders.find(x => x.id === id);
-  if (o) { o.status = status; saveOrders(); updateStats(); renderDeliveries(); renderRecentOrders(); }
-  showToast('Order ' + orderNum(id) + ' → ' + status);
-}
-
-function deleteOrder(id) {
-  if (!confirm('Delete order ' + orderNum(id) + '?')) return;
-  orders = orders.filter(o => o.id !== id);
-  saveOrders(); updateStats(); renderOrders(); renderRecentOrders(); renderDeliveries();
-  showToast('Order deleted');
-}
-
-function openOrder(id) {
-  const o = orders.find(x => x.id === id);
-  if (!o) return;
-  document.getElementById('drawer-title').textContent = 'Order ' + orderNum(o.id);
-  document.getElementById('drawer-body').innerHTML = `
-    <div class="drawer-section">
-      <h4>Order Info</h4>
-      <div class="detail-row"><span class="detail-label">Status</span><span class="detail-val">${statusBadge(o.status)}</span></div>
-      <div class="detail-row"><span class="detail-label">Product</span><span class="detail-val">${o.productName}</span></div>
-      <div class="detail-row"><span class="detail-label">Amount</span><span class="detail-val" style="color:var(--accent);font-size:18px;font-weight:700">$${o.amount}</span></div>
-      <div class="detail-row"><span class="detail-label">Date</span><span class="detail-val">${fmtDate(o.createdAt)}</span></div>
-    </div>
-    <div class="drawer-section">
-      <h4>Customer</h4>
-      <div class="detail-row"><span class="detail-label">Name</span><span class="detail-val">${o.customerName}</span></div>
-      <div class="detail-row"><span class="detail-label">Email</span><span class="detail-val">${o.customerEmail || '—'}</span></div>
-      <div class="detail-row"><span class="detail-label">Phone</span><span class="detail-val"><a href="tel:${o.customerPhone}" style="color:var(--accent)">${o.customerPhone || '—'}</a></span></div>
-    </div>
-    <div class="drawer-section">
-      <h4>Delivery</h4>
-      <div class="detail-row"><span class="detail-label">Address</span><span class="detail-val">${o.deliveryAddress || '—'}</span></div>
-      <div class="detail-row"><span class="detail-label">Area</span><span class="detail-val">${o.deliveryArea || '—'}</span></div>
-    </div>
-    ${o.notes ? `<div class="drawer-section"><h4>Notes</h4><p style="font-size:14px;color:var(--muted)">${o.notes}</p></div>` : ''}
+function openModal(i) {
+  activeOrderIdx = i;
+  const o = orders[i];
+  document.getElementById('modal-ref').textContent = o.ref || 'Order #' + o.id;
+  const date = new Date(o.createdAt).toLocaleString();
+  document.getElementById('modal-body').innerHTML = `
+    <div class="detail-row"><span class="dk">Customer</span><span class="dv">${esc(o.customerName)}</span></div>
+    <div class="detail-row"><span class="dk">Phone</span><span class="dv"><a href="tel:${esc(o.customerPhone)}">${esc(o.customerPhone)}</a></span></div>
+    <div class="detail-row"><span class="dk">Email</span><span class="dv"><a href="mailto:${esc(o.customerEmail)}">${esc(o.customerEmail)}</a></span></div>
+    <div class="detail-row"><span class="dk">Product</span><span class="dv">${esc(o.productName)}</span></div>
+    <div class="detail-row"><span class="dk">Amount</span><span class="dv">$${o.amount} USD</span></div>
+    <div class="detail-row"><span class="dk">Payment</span><span class="dv">${esc(o.paymentMethod || '—')}</span></div>
+    <div class="detail-row"><span class="dk">Delivery address</span><span class="dv">${esc(o.deliveryAddress || '—')}</span></div>
+    <div class="detail-row"><span class="dk">Status</span><span class="dv"><span class="status-badge status-${o.status}">${o.status}</span></span></div>
+    <div class="detail-row"><span class="dk">Placed at</span><span class="dv">${date}</span></div>
   `;
-  document.getElementById('drawer-foot').innerHTML = `
-    <button class="btn btn-primary" onclick="updateOrderStatus(${o.id},'delivered');closeDrawer()">Mark Delivered ✓</button>
-    <button class="btn btn-outline" onclick="updateOrderStatus(${o.id},'in transit');closeDrawer()">Mark In Transit 🚚</button>
-    <a href="https://wa.me/${(o.customerPhone||'').replace(/\D/g,'')}?text=${encodeURIComponent('Hi '+o.customerName+'! Your LaundryLux order for '+o.productName+' is on its way. We will contact you shortly for delivery.')}" target="_blank" class="btn btn-outline">WhatsApp</a>
+  document.getElementById('modal-actions').innerHTML = `
+    <button class="btn-confirm" onclick="setStatus(${i},'confirmed')">✓ Confirm</button>
+    <button class="btn-ship" onclick="setStatus(${i},'shipped')">🚚 Shipped</button>
+    <button class="btn-cancel" onclick="setStatus(${i},'cancelled')">✕ Cancel</button>
   `;
-  document.getElementById('drawer-overlay').classList.add('open');
-  document.getElementById('order-drawer').classList.add('open');
+  document.getElementById('modal-overlay').classList.add('open');
 }
 
-function closeDrawer() {
-  document.getElementById('drawer-overlay').classList.remove('open');
-  document.getElementById('order-drawer').classList.remove('open');
+function setStatus(i, status) {
+  orders[i].status = status;
+  save();
+  render();
+  updateStats();
+  closeModal();
+  showToast('Order marked as ' + status);
 }
 
-// Add order manually
-function openAddOrder() {
-  const name = prompt('Customer full name:');
-  if (!name) return;
-  const phone = prompt('Phone number:');
-  const product = prompt('Product name:');
-  const amount = prompt('Amount (USD):');
-  const area = prompt('Delivery area:');
-  const newOrder = {
-    id: Date.now(),
-    customerName: name,
-    customerPhone: phone || '',
-    customerEmail: '',
-    productName: product || 'Unknown product',
-    amount: parseFloat(amount) || 0,
-    deliveryAddress: '',
-    deliveryArea: area || '',
-    status: 'paid',
-    createdAt: Date.now(),
-  };
-  orders.push(newOrder);
-  saveOrders(); updateStats(); renderOrders(); renderRecentOrders(); renderDeliveries();
-  showToast('Order added: ' + orderNum(newOrder.id));
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
 }
 
-// ─── PRODUCTS ────────────────────────────────────────
-function renderProducts() {
-  const tbody = document.getElementById('products-body');
-  if (!products.length) {
-    tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-icon">📦</div><h4>No products yet</h4><p>Add your first product above.</p></div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = products.map(p => `
-    <tr>
-      <td>
-        <div class="product-info">
-          <div class="product-thumb">${p.emoji || '📦'}</div>
-          <div>
-            <div style="font-weight:600;font-size:13px">${p.name}</div>
-            <div style="font-size:11px;color:var(--muted)">${p.specs || ''}</div>
-          </div>
-        </div>
-      </td>
-      <td>${p.category}</td>
-      <td><strong>$${p.price}</strong></td>
-      <td>${gradeBadge(p.grade)}</td>
-      <td>${p.stock}</td>
-      <td>${p.status === 'active' ? '<span class="badge badge-green">Active</span>' : '<span class="badge badge-gray">Hidden</span>'}</td>
-      <td>
-        <button class="btn btn-outline btn-sm" onclick="editProduct(${p.id})">Edit</button>
-        <button class="btn btn-danger btn-sm" onclick="toggleProductStatus(${p.id})">${p.status==='active'?'Hide':'Show'}</button>
-      </td>
-    </tr>
-  `).join('');
+function clearOrders() {
+  if (!confirm('Delete all orders? This cannot be undone.')) return;
+  localStorage.removeItem('ll_orders');
+  orders = [];
+  render();
+  updateStats();
+  showToast('All orders cleared.');
 }
 
-function openAddProduct() {
-  editingProductId = null;
-  document.getElementById('product-form-title').textContent = 'Add Product';
-  document.getElementById('pf-name').value = '';
-  document.getElementById('pf-specs').value = '';
-  document.getElementById('pf-includes').value = '';
-  document.getElementById('pf-price').value = '';
-  document.getElementById('pf-stock').value = '1';
-  document.getElementById('product-form-section').style.display = 'block';
-  document.getElementById('product-form-section').scrollIntoView({ behavior: 'smooth' });
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function editProduct(id) {
-  const p = products.find(x => x.id === id);
-  if (!p) return;
-  editingProductId = id;
-  document.getElementById('product-form-title').textContent = 'Edit Product';
-  document.getElementById('pf-name').value = p.name;
-  document.getElementById('pf-category').value = p.category;
-  document.getElementById('pf-grade').value = p.grade;
-  document.getElementById('pf-price').value = p.price;
-  document.getElementById('pf-stock').value = p.stock;
-  document.getElementById('pf-specs').value = p.specs || '';
-  document.getElementById('pf-includes').value = p.includes || '';
-  document.getElementById('product-form-section').style.display = 'block';
-  document.getElementById('product-form-section').scrollIntoView({ behavior: 'smooth' });
-}
-
-// Image handling
-let pendingImages = []; // base64 strings for new product
-
-document.addEventListener('DOMContentLoaded', () => {
-  const fileInput = document.getElementById('pf-images');
-  if (fileInput) fileInput.addEventListener('change', handleImageUpload);
-});
-
-function handleImageUpload(e) {
-  const files = Array.from(e.target.files).slice(0, 7);
-  pendingImages = [];
-  const preview = document.getElementById('pf-preview');
-  preview.innerHTML = '<div style="font-size:12px;color:var(--muted)">Processing...</div>';
-
-  let loaded = 0;
-  files.forEach((file, idx) => {
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-      // Compress via canvas
-      const img = new window.Image();
-      img.onload = function() {
-        const canvas = document.createElement('canvas');
-        const MAX = 600;
-        let w = img.width, h = img.height;
-        if (w > MAX) { h = h * MAX / w; w = MAX; }
-        if (h > MAX) { w = w * MAX / h; h = MAX; }
-        canvas.width = w; canvas.height = h;
-        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        const compressed = canvas.toDataURL('image/jpeg', 0.65);
-        pendingImages[idx] = compressed;
-        loaded++;
-        if (loaded === files.length) renderPreviews();
-      };
-      img.src = ev.target.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
-
-function renderPreviews() {
-  const preview = document.getElementById('pf-preview');
-  preview.innerHTML = pendingImages.map((src, i) =>
-    `<div style="position:relative">
-      <img src="${src}" style="width:72px;height:72px;border-radius:8px;object-fit:cover;border:2px solid ${i===0?'var(--accent)':'var(--border)'}">
-      ${i===0?'<span style="position:absolute;bottom:2px;left:2px;background:var(--accent);color:#fff;font-size:9px;padding:1px 5px;border-radius:4px">Main</span>':''}
-    </div>`
-  ).join('');
-}
-
-function saveProduct() {
-  const name = document.getElementById('pf-name').value.trim();
-  if (!name) { alert('Product name is required.'); return; }
-  const data = {
-    name,
-    category: document.getElementById('pf-category').value,
-    grade: document.getElementById('pf-grade').value,
-    price: parseFloat(document.getElementById('pf-price').value) || 0,
-    stock: parseInt(document.getElementById('pf-stock').value) || 1,
-    specs: document.getElementById('pf-specs').value.trim(),
-    includes: document.getElementById('pf-includes').value.trim(),
-    status: 'active',
-    emoji: '📦',
-    images: pendingImages.length ? pendingImages : undefined,
-  };
-  if (editingProductId) {
-    const idx = products.findIndex(p => p.id === editingProductId);
-    // Keep existing images if no new ones uploaded
-    if (!pendingImages.length) delete data.images;
-    products[idx] = { ...products[idx], ...data };
-    showToast('Product updated');
-  } else {
-    products.push({ id: Date.now(), ...data });
-    showToast('Product added');
-  }
-  saveProducts(); renderProducts(); updateStats(); closeProductForm();
-  pendingImages = [];
-}
-
-function closeProductForm() {
-  document.getElementById('product-form-section').style.display = 'none';
-  editingProductId = null;
-  pendingImages = [];
-  document.getElementById('pf-preview').innerHTML = '';
-  document.getElementById('pf-images').value = '';
-}
-
-function toggleProductStatus(id) {
-  const p = products.find(x => x.id === id);
-  if (p) { p.status = p.status === 'active' ? 'hidden' : 'active'; saveProducts(); renderProducts(); updateStats(); }
-}
-
-// ─── DELIVERIES ──────────────────────────────────────
-function renderDeliveries() {
-  const tbody = document.getElementById('delivery-body');
-  const pending = orders.filter(o => o.status === 'paid' || o.status === 'pending' || o.status === 'in transit').reverse();
-  document.getElementById('delivery-count').textContent = pending.length + ' pending';
-  if (!pending.length) {
-    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-icon">🚚</div><h4>No pending deliveries</h4><p>All orders have been delivered.</p></div></td></tr>`;
-    return;
-  }
-  tbody.innerHTML = pending.map(o => `
-    <tr>
-      <td><strong>${orderNum(o.id)}</strong></td>
-      <td>${o.customerName}</td>
-      <td><a href="tel:${o.customerPhone}" style="color:var(--accent)">${o.customerPhone || '—'}</a></td>
-      <td>${o.deliveryArea || '—'}</td>
-      <td>${o.productName}</td>
-      <td>$${o.amount}</td>
-      <td>${statusBadge(o.status)}</td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="btn btn-primary btn-sm" onclick="updateOrderStatus(${o.id},'delivered');renderDeliveries()">Delivered ✓</button>
-        <button class="btn btn-outline btn-sm" onclick="updateOrderStatus(${o.id},'in transit');renderDeliveries()">🚚 Transit</button>
-        <a href="https://wa.me/${(o.customerPhone||'').replace(/\D/g,'')}?text=${encodeURIComponent('Hi '+o.customerName+'! Your order for '+o.productName+' is on the way. Our driver will contact you shortly. - LaundryLux')}" target="_blank" class="btn btn-outline btn-sm">WA</a>
-      </td>
-    </tr>
-  `).join('');
-}
-
-// ─── TOAST ───────────────────────────────────────────
 function showToast(msg) {
   const t = document.getElementById('toast');
-  t.textContent = '✓ ' + msg;
+  t.textContent = msg;
   t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2200);
+  setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-// ─── BOOT ────────────────────────────────────────────
-if (localStorage.getItem('ll_admin') === '1') {
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').classList.add('visible');
-  init();
-}
+// Auto-refresh every 5s in case store tab is open simultaneously
+setInterval(load, 5000);
+load();
 </script>
-
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/6a3cf4aa6bd74a1d4622f4bb/1jrv1nf26';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
-
 </body>
 </html>
