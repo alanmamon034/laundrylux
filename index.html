@@ -1007,8 +1007,9 @@ async function cfSendMsg() {
 const FB_URL = 'https://laundrylux-f47d7-default-rtdb.firebaseio.com';
 
 async function cfFirebaseSend(role, text) {
+  if (!cfRoomId) { console.error('cfRoomId is empty'); return; }
   try {
-    await fetch(FB_URL + '/chats/' + cfRoomId + '/messages.json', {
+    const res = await fetch(FB_URL + '/chats/' + cfRoomId + '/messages.json', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1017,7 +1018,15 @@ async function cfFirebaseSend(role, text) {
         ts: Date.now()
       })
     });
-  } catch(e) { console.error('Firebase send error:', e); }
+    if (!res.ok) {
+      const err = await res.text();
+      console.error('Firebase write failed:', res.status, err);
+      showToast('Chat error ' + res.status + ': ' + err.slice(0,60));
+    }
+  } catch(e) {
+    console.error('Firebase send error:', e);
+    showToast('Chat connection error: ' + e.message);
+  }
 }
 
 // Poll every 2.5s for new admin replies
