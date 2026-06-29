@@ -134,32 +134,26 @@
 
 <div class="toast" id="toast"></div>
 
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, push, onChildAdded, onValue, query, orderByChild } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+<script>
+// Firebase via plain REST — no SDK, works everywhere
+const FB_URL = 'https://laundrylux-f47d7-default-rtdb.firebaseio.com';
 
-const firebaseConfig = {
-  apiKey: "AIzaSyAgqZWNc1f-wRufI7xdezh5rxrY5eT9_kw",
-  authDomain: "laundrylux-f47d7.firebaseapp.com",
-  databaseURL: "https://laundrylux-f47d7-default-rtdb.firebaseio.com",
-  projectId: "laundrylux-f47d7",
-  storageBucket: "laundrylux-f47d7.firebasestorage.app",
-  messagingSenderId: "347247627395",
-  appId: "1:347247627395:web:7081b69ec59875338edfb6"
-};
+// Check connectivity by pinging Firebase
+async function checkConnection() {
+  try {
+    const r = await fetch(FB_URL + '/.json?shallow=true');
+    const ok = r.ok;
+    document.getElementById('fb-dot').className = 'fb-dot' + (ok ? ' connected' : '');
+    document.getElementById('fb-status-text').textContent = ok ? 'Live' : 'Reconnecting…';
+  } catch(e) {
+    document.getElementById('fb-dot').className = 'fb-dot';
+    document.getElementById('fb-status-text').textContent = 'Offline';
+  }
+}
+checkConnection();
+setInterval(checkConnection, 10000);
 
-const app = initializeApp(firebaseConfig);
-const db  = getDatabase(app);
-
-onValue(ref(db, '.info/connected'), (snap) => {
-  const ok = snap.val();
-  document.getElementById('fb-dot').className = 'fb-dot' + (ok ? ' connected' : '');
-  document.getElementById('fb-status-text').textContent = ok ? 'Live' : 'Reconnecting…';
-});
-
-window._fbDb  = db;
-window._fbFns = { ref, push, onChildAdded, query, orderByChild };
-window._adminBoot();
+document.addEventListener("DOMContentLoaded", () => window._adminBoot());
 </script>
 
 <script>
@@ -248,35 +242,38 @@ function selectOrder(ref) {
   loadChat(o.ref);
 }
 
-// Track active listener so we can detach it before loading a new chat
-let _chatUnsubscribe = null;
+let _pollInterval = null;
+let _lastMsgCount = 0;
 
 function loadChat(roomId) {
   const msgs = document.getElementById('chat-messages');
   msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted)">Loading messages…</div>';
 
-  const db = window._fbDb;
-  if (!db) return;
-  const { ref, onChildAdded, query, orderByChild } = window._fbFns;
+  // Clear any existing poll
+  if (_pollInterval) { clearInterval(_pollInterval); _pollInterval = null; }
+  _lastMsgCount = 0;
 
-  // Detach any previous listener before attaching a new one
-  if (_chatUnsubscribe) { _chatUnsubscribe(); _chatUnsubscribe = null; }
+  async function fetchMsgs() {
+    try {
+      const res = await fetch(FB_URL + '/chats/' + roomId + '/messages.json');
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data) {
+        msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted)">No messages yet.</div>';
+        return;
+      }
+      // Sort by ts
+      const all = Object.values(data).sort((a,b) => (a.ts||0) - (b.ts||0));
+      if (all.length !== _lastMsgCount) {
+        _lastMsgCount = all.length;
+        msgs.innerHTML = '';
+        all.forEach(msg => appendMsg(msg.role, msg.text, msg.time));
+      }
+    } catch(e) {}
+  }
 
-  const chatQuery = query(ref(db, 'chats/' + roomId + '/messages'), orderByChild('ts'));
-  let cleared = false;
-
-  _chatUnsubscribe = onChildAdded(chatQuery, (snap) => {
-    if (!cleared) { msgs.innerHTML = ''; cleared = true; }
-    const msg = snap.val();
-    if (msg && activeRef === roomId) appendMsg(msg.role, msg.text, msg.time);
-  });
-
-  // If no messages arrive within 3s, clear the loading state
-  setTimeout(() => {
-    if (!cleared) {
-      msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted)">No messages yet.</div>';
-    }
-  }, 3000);
+  fetchMsgs();
+  _pollInterval = setInterval(fetchMsgs, 2500);
 }
 
 function appendMsg(role, text, time) {
@@ -295,25 +292,17 @@ async function sendAdminMsg() {
   if (!text || !activeRef) return;
   input.value = '';
 
-  const db = window._fbDb;
-  if (!db) { showToast('Not connected'); return; }
-  const { ref, push } = window._fbFns;
   const time = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
   try {
-    await push(ref(db, 'chats/' + activeRef + '/messages'), { role:'admin', text, time, ts:Date.now() });
+    const res = await fetch(FB_URL + '/chats/' + activeRef + '/messages.json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ role:'admin', text, time, ts: Date.now() })
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     appendMsg('admin', text, time);
-  } catch(e) { showToast('Failed: ' + e.message); }
+  } catch(e) { showToast('Failed to send: ' + e.message); }
 }
-
-// Debug: log all messages for active order to console
-window.debugChat = function() {
-  const db = window._fbDb;
-  if (!db || !activeRef) { console.log('No active order selected'); return; }
-  const { ref, onChildAdded, query, orderByChild } = window._fbFns;
-  const q = query(ref(db, 'chats/' + activeRef + '/messages'), orderByChild('ts'));
-  console.log('Fetching messages for', activeRef);
-  onChildAdded(q, (snap) => console.log(snap.val()));
-};
 
 function setStatus(ref, status) {
   const o = orders.find(x => x.ref === ref);
