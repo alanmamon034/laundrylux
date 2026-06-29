@@ -136,7 +136,7 @@
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getDatabase, ref, push, onChildAdded, onValue } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
+import { getDatabase, ref, push, onChildAdded, onValue, query, orderByChild } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAgqZWNc1f-wRufI7xdezh5rxrY5eT9_kw",
@@ -158,7 +158,7 @@ onValue(ref(db, '.info/connected'), (snap) => {
 });
 
 window._fbDb  = db;
-window._fbFns = { ref, push, onChildAdded };
+window._fbFns = { ref, push, onChildAdded, query, orderByChild };
 window._adminBoot();
 </script>
 
@@ -250,14 +250,24 @@ function selectOrder(ref) {
 
 function loadChat(roomId) {
   const msgs = document.getElementById('chat-messages');
-  msgs.innerHTML = '';
+  msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted)">Loading messages…</div>';
 
   const db = window._fbDb;
   if (!db) return;
-  const { ref, onChildAdded } = window._fbFns;
+  const { ref, onChildAdded, query, orderByChild } = window._fbFns;
 
-  onChildAdded(ref(db, 'chats/' + roomId + '/messages'), (snap) => {
+  // Order by timestamp so messages always appear in the right order
+  const chatQuery = query(ref(db, 'chats/' + roomId + '/messages'), orderByChild('ts'));
+
+  let firstLoad = true;
+  onChildAdded(chatQuery, (snap) => {
+    if (firstLoad) {
+      // Clear the loading placeholder on first real message
+      msgs.innerHTML = '';
+      firstLoad = false;
+    }
     const msg = snap.val();
+    // Guard: only render if this order is still selected
     if (msg && activeRef === roomId) appendMsg(msg.role, msg.text, msg.time);
   });
 }
