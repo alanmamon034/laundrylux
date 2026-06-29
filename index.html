@@ -1003,42 +1003,44 @@ async function cfSendMsg() {
   cfAddMsg('customer', text);
 }
 
+// ── Firebase via plain REST API (works in all browsers, no SDK quirks) ──
+const FB_URL = 'https://laundrylux-f47d7-default-rtdb.firebaseio.com';
+
 async function cfFirebaseSend(role, text) {
   try {
-    const db = window._fbDb;
-    if (!db) return;
-    const { ref, push } = window._fbFns;
-    await push(ref(db, 'chats/' + cfRoomId + '/messages'), {
-      role, text,
-      time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
-      ts: Date.now()
+    await fetch(FB_URL + '/chats/' + cfRoomId + '/messages.json', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        role, text,
+        time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+        ts: Date.now()
+      })
     });
-  } catch(e) { console.error('Firebase send:', e); }
+  } catch(e) { console.error('Firebase send error:', e); }
+}
+
+// Poll every 2.5s for new admin replies
+let _lastAdminTs = Date.now();
+async function cfPollMessages() {
+  try {
+    const res = await fetch(FB_URL + '/chats/' + cfRoomId + '/messages.json');
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data) return;
+    Object.values(data).forEach(msg => {
+      if (msg.role === 'admin' && msg.ts > _lastAdminTs) {
+        _lastAdminTs = msg.ts;
+        cfAddMsg('admin', msg.text, msg.time);
+      }
+    });
+  } catch(e) {}
 }
 
 function cfStartListening() {
-  function tryListen() {
-    const db = window._fbDb;
-    if (!db) { setTimeout(tryListen, 400); return; }
-    const { ref, onChildAdded, query, orderByChild, startAt } = window._fbFns;
-    // Only listen for messages created AFTER the chat opened so we don't
-    // re-display the opening message the customer already sees
-    const listenFrom = Date.now();
-    const newMsgsQuery = query(
-      ref(db, 'chats/' + cfRoomId + '/messages'),
-      orderByChild('ts'),
-      startAt(listenFrom)
-    );
-    onChildAdded(newMsgsQuery, (snap) => {
-      const msg = snap.val();
-      if (msg && msg.role === 'admin') cfAddMsg('admin', msg.text, msg.time);
-    });
-  }
-  tryListen();
+  _lastAdminTs = Date.now();
+  setInterval(cfPollMessages, 2500);
 }
-
-// no longer polling — kept as stub so nothing breaks
-async function cfPollMessages() {}
 
 function cfAddMsg(role, text, time) {
   const msgs = document.getElementById('cf-messages');
@@ -1058,28 +1060,7 @@ function closeCheckout() {}
 renderProducts();
 </script>
 
-<!-- Firebase SDK -->
-<script type="module">
-  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getDatabase, ref, push, onChildAdded, query, orderByChild, startAt } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js';
-
-  const firebaseConfig = {
-    apiKey: "AIzaSyAgqZWNc1f-wRufI7xdezh5rxrY5eT9_kw",
-    authDomain: "laundrylux-f47d7.firebaseapp.com",
-    databaseURL: "https://laundrylux-f47d7-default-rtdb.firebaseio.com",
-    projectId: "laundrylux-f47d7",
-    storageBucket: "laundrylux-f47d7.firebasestorage.app",
-    messagingSenderId: "347247627395",
-    appId: "1:347247627395:web:7081b69ec59875338edfb6"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  // Expose db and functions to global scope for the main script
-  window._fbDb = db;
-  window._fbFns = { ref, push, onChildAdded, query, orderByChild, startAt };
-</script>
+<!-- Firebase accessed via REST API — no SDK needed -->
 
 <!--Start of Tawk.to Script-->
 <script type="text/javascript">
