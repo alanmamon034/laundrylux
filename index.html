@@ -946,31 +946,20 @@ async function cfSubmitAndChat() {
   });
   localStorage.setItem('ll_orders', JSON.stringify(orders));
 
-  // Switch to chat view
-  document.getElementById('cf-step1').style.display = 'none';
-  document.getElementById('cf-step2').classList.add('active');
-  document.getElementById('cf-chat-ref').textContent = ref;
-  document.getElementById('cf-chat-product-label').textContent = cfProduct.name;
-  document.getElementById('cf-messages').innerHTML = '<div style="text-align:center;font-size:11px;color:var(--muted);padding:8px">Chat started \u2014 we\'ll be right with you!</div>';
-  cfMsgCount = 0;
+  // Close the order modal
+  closeCF();
 
-  // Send opening message from customer
-  const openMsg = `Hi! I want to order:
-📦 ${cfProduct.name}
-💰 $${cfProduct.price} USD
-💳 Payment: ${cfPayMethod}
-👤 ${name} | 📞 ${phone}
-📍 ${address}${city?', '+city:''}
-📧 ${email}
-Ref: ${ref}`;
-
-  await cfSendToAPI('customer', openMsg);
-
-  // Update status
-  document.getElementById('cf-chat-status').textContent = 'Online — typically replies in minutes';
-
-  // Start polling for admin replies
-  cfPollInterval = setInterval(cfPollMessages, 2000);
+  // Fire into Tawk.to
+  function sendToTawk() {
+    if (window.Tawk_API && typeof Tawk_API.maximize === 'function') {
+      Tawk_API.setAttributes({ name: name, email: email, hash: ref }, function(err){});
+      Tawk_API.maximize();
+      showToast('Order #' + ref + ' placed! Chat with us to confirm.');
+    } else {
+      setTimeout(sendToTawk, 500);
+    }
+  }
+  sendToTawk();
 }
 
 async function cfSendToAPI(role, text) {
