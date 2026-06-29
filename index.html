@@ -933,8 +933,8 @@ async function cfSubmitAndChat() {
   if (!ok) { showToast('Please fill in all required fields.'); return; }
 
   cfCustomerName = name;
-  const ref = 'ORD-' + Math.random().toString(36).substring(2,10).toUpperCase();
-  cfRoomId = ref;
+  const ordRef = 'ORD-' + Math.random().toString(36).substring(2,10).toUpperCase();
+  cfRoomId = ordRef;
 
   // Save order
   const orders = JSON.parse(localStorage.getItem('ll_orders') || '[]');
@@ -942,14 +942,14 @@ async function cfSubmitAndChat() {
     id: Date.now(), customerName: name, customerPhone: phone,
     customerEmail: email, productName: cfProduct.name, amount: cfProduct.price,
     deliveryAddress: address + (city?', '+city:''), deliveryArea: city,
-    paymentMethod: cfPayMethod, status: 'pending', createdAt: Date.now(), ref
+    paymentMethod: cfPayMethod, status: 'pending', createdAt: Date.now(), ref: ordRef
   });
   localStorage.setItem('ll_orders', JSON.stringify(orders));
 
-  // Switch to built-in chat view (step 2) — same as the original working flow
+  // Switch to built-in chat view (step 2)
   document.getElementById('cf-step1').style.display = 'none';
   document.getElementById('cf-step2').classList.add('active');
-  document.getElementById('cf-chat-ref').textContent = ref;
+  document.getElementById('cf-chat-ref').textContent = ordRef;
   document.getElementById('cf-chat-product-label').textContent = cfProduct.name;
   document.getElementById('cf-messages').innerHTML = '<div style="text-align:center;font-size:11px;color:var(--muted);padding:8px">Chat started — we\'ll be right with you!</div>';
   cfMsgCount = 0;
@@ -961,95 +961,82 @@ async function cfSubmitAndChat() {
     + 'Payment: ' + cfPayMethod + '\n'
     + name + ' | ' + phone + '\n'
     + address + (city ? ', ' + city : '') + '\n'
-    + email + '\nRef: ' + ref;
+    + email + '\nRef: ' + ordRef;
   cfAddMsg('customer', openMsg);
 
   document.getElementById('cf-chat-status').textContent = 'Online — typically replies in minutes';
 
-  // Send opening message to Firebase so admin sees it instantly
-  await cfFirebaseSend('customer', openMsg);
+  // Log to confirm cfRoomId is set correctly before sending
+  // Send full order details to your Telegram
+  var tgOrderMsg = 'NEW ORDER: ' + ordRef
+    + '\nProduct: ' + cfProduct.name
+    + '\nAmount: $' + cfProduct.price + ' USD'
+    + '\nPayment: ' + cfPayMethod
+    + '\nName: ' + name
+    + '\nPhone: ' + phone
+    + '\nAddress: ' + address + (city ? ', ' + city : '')
+    + '\nEmail: ' + email
+    + '\n\nTo reply, start your message with: [' + ordRef + '] your reply here';
+  tgSend(tgOrderMsg);
 
-  // Start real-time listener for admin replies
-  cfStartListening();
-
-  // Silently notify Tawk in the background — you get a ping on your dashboard + mobile app
-  // without interrupting the customer's chat experience
-  function notifyTawk() {
-    if (window.Tawk_API && typeof Tawk_API.setAttributes === 'function') {
-      Tawk_API.setAttributes({
-        name:        name,
-        email:       email,
-        'Order-Ref': ref,
-        'Product':   cfProduct.name,
-        'Amount':    '$' + cfProduct.price + ' USD',
-        'Payment':   cfPayMethod,
-        'Phone':     phone,
-        'Address':   address + (city ? ', ' + city : '')
-      }, function(err) {});
-    } else {
-      setTimeout(notifyTawk, 500);
-    }
-  }
-  notifyTawk();
 }
 
-// ── Firebase real-time chat ──────────────────────────────────
+// Telegram chat integration
+const TG_TOKEN = '8939267232:AAHQP2Xa4ooMGBoWeD-VaUwiL8BRHIiKTpw';
+const TG_CHAT  = '8708266505';
+const TG_API   = 'https://api.telegram.org/bot' + TG_TOKEN;
+let _lastUpdateId = 0;
+
 async function cfSendMsg() {
   const input = document.getElementById('cf-msg-input');
   const text = input.value.trim();
   if (!text) return;
   input.value = '';
-  await cfFirebaseSend('customer', text);
   cfAddMsg('customer', text);
+  await tgSend(cfCustomerName + ' [' + cfRoomId + ']:\n' + text);
 }
 
-// ── Firebase via plain REST API (works in all browsers, no SDK quirks) ──
-const FB_URL = 'https://laundrylux-f47d7-default-rtdb.firebaseio.com';
-
-async function cfFirebaseSend(role, text) {
-  if (!cfRoomId) { console.error('cfRoomId is empty'); return; }
+async function tgSend(text) {
   try {
-    const res = await fetch(FB_URL + '/chats/' + cfRoomId + '/messages.json', {
+    await fetch(TG_API + '/sendMessage', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        role, text,
-        time: new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
-        ts: Date.now()
-      })
+      body: JSON.stringify({ chat_id: TG_CHAT, text: text })
     });
-    if (!res.ok) {
-      const err = await res.text();
-      console.error('Firebase write failed:', res.status, err);
-      showToast('Chat error ' + res.status + ': ' + err.slice(0,60));
-    }
-  } catch(e) {
-    console.error('Firebase send error:', e);
-    showToast('Chat connection error: ' + e.message);
-  }
+  } catch(e) { console.error('Telegram error:', e); }
 }
 
-// Poll every 2.5s for new admin replies
-let _lastAdminTs = Date.now();
 async function cfPollMessages() {
   try {
-    const res = await fetch(FB_URL + '/chats/' + cfRoomId + '/messages.json');
+    const res = await fetch(TG_API + '/getUpdates?offset=' + (_lastUpdateId + 1) + '&timeout=0');
     if (!res.ok) return;
     const data = await res.json();
-    if (!data) return;
-    Object.values(data).forEach(msg => {
-      if (msg.role === 'admin' && msg.ts > _lastAdminTs) {
-        _lastAdminTs = msg.ts;
-        cfAddMsg('admin', msg.text, msg.time);
+    if (!data.ok || !data.result.length) return;
+    data.result.forEach(function(upd) {
+      _lastUpdateId = upd.update_id;
+      const msg = upd.message;
+      if (!msg || !msg.text) return;
+      // Only show reply if it starts with [ORDREF] so right customer gets it
+      const tag = '[' + cfRoomId + ']';
+      if (msg.text.indexOf(tag) === 0) {
+        const reply = msg.text.replace(tag, '').trim();
+        const time = new Date(msg.date * 1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+        cfAddMsg('admin', reply, time);
       }
     });
   } catch(e) {}
 }
 
 function cfStartListening() {
-  _lastAdminTs = Date.now();
+  // Anchor offset so we only get messages AFTER order is placed
+  fetch(TG_API + '/getUpdates?limit=1&offset=-1')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.ok && d.result.length) _lastUpdateId = d.result[d.result.length - 1].update_id;
+    }).catch(function(){});
   setInterval(cfPollMessages, 2500);
 }
+
 
 function cfAddMsg(role, text, time) {
   const msgs = document.getElementById('cf-messages');
@@ -1069,7 +1056,7 @@ function closeCheckout() {}
 renderProducts();
 </script>
 
-<!-- Firebase accessed via REST API — no SDK needed -->
+
 
 <!--Start of Tawk.to Script-->
 <script type="text/javascript">
