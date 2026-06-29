@@ -248,6 +248,9 @@ function selectOrder(ref) {
   loadChat(o.ref);
 }
 
+// Track active listener so we can detach it before loading a new chat
+let _chatUnsubscribe = null;
+
 function loadChat(roomId) {
   const msgs = document.getElementById('chat-messages');
   msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted)">Loading messages…</div>';
@@ -256,20 +259,24 @@ function loadChat(roomId) {
   if (!db) return;
   const { ref, onChildAdded, query, orderByChild } = window._fbFns;
 
-  // Order by timestamp so messages always appear in the right order
-  const chatQuery = query(ref(db, 'chats/' + roomId + '/messages'), orderByChild('ts'));
+  // Detach any previous listener before attaching a new one
+  if (_chatUnsubscribe) { _chatUnsubscribe(); _chatUnsubscribe = null; }
 
-  let firstLoad = true;
-  onChildAdded(chatQuery, (snap) => {
-    if (firstLoad) {
-      // Clear the loading placeholder on first real message
-      msgs.innerHTML = '';
-      firstLoad = false;
-    }
+  const chatQuery = query(ref(db, 'chats/' + roomId + '/messages'), orderByChild('ts'));
+  let cleared = false;
+
+  _chatUnsubscribe = onChildAdded(chatQuery, (snap) => {
+    if (!cleared) { msgs.innerHTML = ''; cleared = true; }
     const msg = snap.val();
-    // Guard: only render if this order is still selected
     if (msg && activeRef === roomId) appendMsg(msg.role, msg.text, msg.time);
   });
+
+  // If no messages arrive within 3s, clear the loading state
+  setTimeout(() => {
+    if (!cleared) {
+      msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted)">No messages yet.</div>';
+    }
+  }, 3000);
 }
 
 function appendMsg(role, text, time) {
@@ -297,6 +304,16 @@ async function sendAdminMsg() {
     appendMsg('admin', text, time);
   } catch(e) { showToast('Failed: ' + e.message); }
 }
+
+// Debug: log all messages for active order to console
+window.debugChat = function() {
+  const db = window._fbDb;
+  if (!db || !activeRef) { console.log('No active order selected'); return; }
+  const { ref, onChildAdded, query, orderByChild } = window._fbFns;
+  const q = query(ref(db, 'chats/' + activeRef + '/messages'), orderByChild('ts'));
+  console.log('Fetching messages for', activeRef);
+  onChildAdded(q, (snap) => console.log(snap.val()));
+};
 
 function setStatus(ref, status) {
   const o = orders.find(x => x.ref === ref);
