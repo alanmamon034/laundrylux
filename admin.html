@@ -255,21 +255,26 @@ function loadChat(roomId) {
 
   async function fetchMsgs() {
     try {
-      const res = await fetch(FB_URL + '/chats/' + roomId + '/messages.json');
-      if (!res.ok) return;
-      const data = await res.json();
-      if (!data) {
-        msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted)">No messages yet.</div>';
+      const url = FB_URL + '/chats/' + roomId + '/messages.json';
+      const res = await fetch(url);
+      if (!res.ok) {
+        msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:red">Firebase error: ' + res.status + ' ' + res.statusText + '</div>';
         return;
       }
-      // Sort by ts
+      const data = await res.json();
+      if (!data) {
+        if (_lastMsgCount === 0) msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted)">No messages yet.</div>';
+        return;
+      }
       const all = Object.values(data).sort((a,b) => (a.ts||0) - (b.ts||0));
       if (all.length !== _lastMsgCount) {
         _lastMsgCount = all.length;
         msgs.innerHTML = '';
         all.forEach(msg => appendMsg(msg.role, msg.text, msg.time));
       }
-    } catch(e) {}
+    } catch(e) {
+      msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:red">Fetch error: ' + e.message + '</div>';
+    }
   }
 
   fetchMsgs();
