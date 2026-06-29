@@ -1016,11 +1016,13 @@ async function cfPollMessages() {
       _lastUpdateId = upd.update_id;
       const msg = upd.message;
       if (!msg || !msg.text) return;
+      // Show any message from the admin (your Telegram account)
+      // regardless of whether it has a tag or not
+      const fromAdmin = String(msg.from && msg.from.id) === TG_CHAT;
       const tag = '[' + cfRoomId + ']';
-      const text = msg.text;
-      // Match reply if it contains the order ref anywhere in the message
-      if (text.indexOf(tag) !== -1) {
-        const reply = text.replace(tag, '').trim();
+      const hasTag = msg.text.indexOf(tag) !== -1;
+      if (fromAdmin || hasTag) {
+        const reply = msg.text.replace(tag, '').trim();
         const time = new Date(msg.date * 1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
         cfAddMsg('admin', reply, time);
       }
@@ -1029,13 +1031,19 @@ async function cfPollMessages() {
 }
 
 function cfStartListening() {
-  // Anchor offset so we only get messages AFTER order is placed
-  fetch(TG_API + '/getUpdates?limit=1&offset=-1')
+  // Get current offset THEN start polling — ensures we catch replies
+  // that arrive immediately after the order notification
+  fetch(TG_API + '/getUpdates?limit=100&offset=-1')
     .then(function(r) { return r.json(); })
     .then(function(d) {
-      if (d.ok && d.result.length) _lastUpdateId = d.result[d.result.length - 1].update_id;
-    }).catch(function(){});
-  setInterval(cfPollMessages, 2500);
+      if (d.ok && d.result.length) {
+        _lastUpdateId = d.result[d.result.length - 1].update_id;
+      }
+      // Start polling only after offset is anchored
+      setInterval(cfPollMessages, 2000);
+    }).catch(function() {
+      setInterval(cfPollMessages, 2000);
+    });
 }
 
 
