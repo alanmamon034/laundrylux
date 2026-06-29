@@ -949,14 +949,56 @@ async function cfSubmitAndChat() {
   // Close the order modal
   closeCF();
 
+  // Show confirmation toast
+  showToast('Order ' + ref + ' placed! Opening chat…');
+
   // Fire into Tawk.to
   function sendToTawk() {
     if (window.Tawk_API && typeof Tawk_API.maximize === 'function') {
-      Tawk_API.setAttributes({ name: name, email: email, hash: ref }, function(err){});
+
+      // Set visitor attributes -- all order details appear in your Tawk dashboard
+      Tawk_API.setAttributes({
+        name:          name,
+        email:         email,
+        'Order-Ref':   ref,
+        'Product':     cfProduct.name,
+        'Amount':      '$' + cfProduct.price + ' USD',
+        'Payment':     cfPayMethod,
+        'Phone':       phone,
+        'Address':     address + (city ? ', ' + city : '')
+      }, function(err) {});
+
+      // Open the chat widget -- creates a live session in your Tawk dashboard
+      // and sends you a push notification on the Tawk mobile app
       Tawk_API.maximize();
-      showToast('Order #' + ref + ' placed! Chat with us to confirm.');
+
+      // After widget opens, auto-type the order summary so the
+      // first message you see already has all the details
+      setTimeout(function() {
+        var msg = '\uD83D\uDCE6 New order: ' + ref
+          + '\n\uD83D\uDECD Product: ' + cfProduct.name
+          + '\n\uD83D\uDCB0 Amount: $' + cfProduct.price + ' USD'
+          + '\n\uD83D\uDCB3 Payment: ' + cfPayMethod
+          + '\n\uD83D\uDC64 ' + name + ' | \uD83D\uDCDE ' + phone
+          + '\n\uD83D\uDCCD ' + address + (city ? ', ' + city : '')
+          + '\n\uD83D\uDCE7 ' + email
+          + '\n\nPlease confirm my order and send payment details.';
+
+        // Try to populate the Tawk chat input so customer just hits Send
+        var inp = document.querySelector('.tawk-chatinput-editor, [contenteditable][class*="tawk"], textarea[class*="tawk"]');
+        if (inp) {
+          if (inp.tagName === 'TEXTAREA') {
+            inp.value = msg;
+            inp.dispatchEvent(new Event('input', { bubbles: true }));
+          } else {
+            inp.innerText = msg;
+            inp.dispatchEvent(new Event('input', { bubbles: true }));
+          }
+        }
+      }, 1500);
+
     } else {
-      setTimeout(sendToTawk, 500);
+      setTimeout(sendToTawk, 400);
     }
   }
   sendToTawk();
