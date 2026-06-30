@@ -979,6 +979,8 @@ async function cfSubmitAndChat() {
     + '\n[' + ordRef + '] your message here';
   tgSend(tgOrderMsg);
 
+  // Start polling Telegram for admin replies — this was missing!
+  cfStartListening();
 }
 
 // Telegram chat integration
@@ -1041,7 +1043,7 @@ function cfStartListening() {
   // Anchor to "now" using message timestamps instead of consuming the
   // update queue (offset=-1 acknowledges/deletes pending updates, which
   // breaks polling for other customers using the bot at the same time)
-  cfListenSince = Math.floor(Date.now() / 1000);
+  cfListenSince = Math.floor(Date.now() / 1000) - 5; // 5s buffer for clock/race safety
   setInterval(cfPollMessages, 2000);
 }
 
