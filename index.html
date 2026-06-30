@@ -497,7 +497,9 @@
       <div id="cf-messages" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0"></div>
 
       <!-- Input -->
-      <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
+      <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;align-items:center">
+        <input type="file" id="cf-file-input" accept="image/*" style="display:none" onchange="cfSendImage(this)" />
+        <button onclick="document.getElementById('cf-file-input').click()" title="Attach payment screenshot" style="background:none;border:1.5px solid var(--border);border-radius:9px;width:40px;height:40px;flex-shrink:0;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center">📎</button>
         <input id="cf-msg-input" placeholder="Type a message..." style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:13px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')cfSendMsg()" />
         <button onclick="cfSendMsg()" style="background:#4F46E5;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">Send</button>
       </div>
@@ -608,7 +610,9 @@
       <div id="cf-messages" style="flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:0"></div>
 
       <!-- Input -->
-      <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
+      <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;align-items:center">
+        <input type="file" id="cf-file-input" accept="image/*" style="display:none" onchange="cfSendImage(this)" />
+        <button onclick="document.getElementById('cf-file-input').click()" title="Attach payment screenshot" style="background:none;border:1.5px solid var(--border);border-radius:9px;width:40px;height:40px;flex-shrink:0;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center">📎</button>
         <input id="cf-msg-input" placeholder="Type a message..." style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:13px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')cfSendMsg()" />
         <button onclick="cfSendMsg()" style="background:#4F46E5;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">Send</button>
       </div>
@@ -988,6 +992,43 @@ const TG_TOKEN = '8939267232:AAHQP2Xa4ooMGBoWeD-VaUwiL8BRHIiKTpw';
 const TG_CHAT  = '-5215935930'; // LaundryLux Orders group
 const TG_API   = 'https://api.telegram.org/bot' + TG_TOKEN;
 
+async function cfSendImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  input.value = ''; // reset so the same file can be picked again later
+
+  // Show a local preview immediately in the customer's chat
+  const previewUrl = URL.createObjectURL(file);
+  cfAddImageMsg('customer', previewUrl);
+
+  // Upload to Telegram as a photo with the order ref as caption
+  try {
+    const formData = new FormData();
+    formData.append('chat_id', TG_CHAT);
+    formData.append('caption', cfCustomerName + ' [' + cfRoomId + '] sent a payment screenshot');
+    formData.append('photo', file);
+
+    const res = await fetch(TG_API + '/sendPhoto', { method: 'POST', body: formData });
+    if (!res.ok) {
+      console.error('Image upload failed:', res.status);
+      showToast('Failed to send screenshot, please try again');
+    }
+  } catch(e) {
+    console.error('Image upload error:', e);
+    showToast('Failed to send screenshot, please try again');
+  }
+}
+
+function cfAddImageMsg(role, url) {
+  const msgs = document.getElementById('cf-messages');
+  const div = document.createElement('div');
+  div.className = role === 'admin' ? 'chat-msg-admin' : 'chat-msg-customer';
+  const t = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  div.innerHTML = '<div class="chat-msg-text" style="padding:4px"><img src="' + url + '" style="max-width:200px;border-radius:8px;display:block" /></div><div class="chat-msg-time">' + t + '</div>';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
 async function cfSendMsg() {
   const input = document.getElementById('cf-msg-input');
   const text = input.value.trim();
@@ -1012,28 +1053,57 @@ let cfListenSince = 0;
 async function cfPollMessages() {
   try {
     const res = await fetch(TG_API + '/getUpdates?limit=100');
-    if (!res.ok) { console.warn('TG poll failed:', res.status); return; }
+    if (!res.ok) return;
     const data = await res.json();
     if (!data.ok || !data.result.length) return;
-    console.log('TG poll: got', data.result.length, 'updates, looking for tag', '[' + cfRoomId + ']');
     data.result.forEach(function(upd) {
       const msg = upd.message;
-      if (!msg || !msg.text) return;
-      if (msg.date < cfListenSince) { console.log('skip (too old):', msg.text.slice(0,40)); return; }
+      if (!msg) return;
+      if (msg.date < cfListenSince) return;
       const fromGroup = String(msg.chat && msg.chat.id) === TG_CHAT;
-      if (!fromGroup) { console.log('skip (wrong chat):', msg.chat && msg.chat.id); return; }
+      if (!fromGroup) return;
       const tag = '[' + cfRoomId + ']';
+
+      // Handle photo messages (e.g. admin sending a payment QR code or proof)
+      if (msg.photo && msg.photo.length) {
+        const caption = msg.caption || '';
+        if (caption.indexOf(tag) === -1) return;
+        const msgKey = upd.update_id;
+        if (cfSeenUpdates.has(msgKey)) return;
+        cfSeenUpdates.add(msgKey);
+        const fileId = msg.photo[msg.photo.length - 1].file_id; // largest size
+        const time = new Date(msg.date * 1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+        cfFetchAndShowPhoto(fileId, time);
+        return;
+      }
+
+      // Handle text messages
+      if (!msg.text) return;
       const hasTag = msg.text.indexOf(tag) !== -1;
-      if (!hasTag) { console.log('skip (no tag):', msg.text.slice(0,40)); return; }
+      if (!hasTag) return;
       const msgKey = upd.update_id;
-      if (cfSeenUpdates.has(msgKey)) { console.log('skip (already shown):', msgKey); return; }
+      if (cfSeenUpdates.has(msgKey)) return;
       cfSeenUpdates.add(msgKey);
       const reply = msg.text.replace(tag, '').trim();
       const time = new Date(msg.date * 1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-      console.log('SHOWING message:', reply);
       cfAddMsg('admin', reply, time);
     });
-  } catch(e) { console.error('TG poll error:', e); }
+  } catch(e) {}
+}
+
+async function cfFetchAndShowPhoto(fileId, time) {
+  try {
+    const fileRes = await fetch(TG_API + '/getFile?file_id=' + fileId);
+    const fileData = await fileRes.json();
+    if (!fileData.ok) return;
+    const photoUrl = 'https://api.telegram.org/file/bot' + TG_TOKEN + '/' + fileData.result.file_path;
+    const msgs = document.getElementById('cf-messages');
+    const div = document.createElement('div');
+    div.className = 'chat-msg-admin';
+    div.innerHTML = '<div class="chat-msg-text" style="padding:4px"><img src="' + photoUrl + '" style="max-width:200px;border-radius:8px;display:block" /></div><div class="chat-msg-time">' + time + '</div>';
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  } catch(e) {}
 }
 const cfSeenUpdates = new Set();
 
