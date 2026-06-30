@@ -985,7 +985,6 @@ async function cfSubmitAndChat() {
 const TG_TOKEN = '8939267232:AAHQP2Xa4ooMGBoWeD-VaUwiL8BRHIiKTpw';
 const TG_CHAT  = '-5215935930'; // LaundryLux Orders group
 const TG_API   = 'https://api.telegram.org/bot' + TG_TOKEN;
-let _lastUpdateId = 0;
 
 async function cfSendMsg() {
   const input = document.getElementById('cf-msg-input');
@@ -1006,44 +1005,44 @@ async function tgSend(text) {
   } catch(e) { console.error('Telegram error:', e); }
 }
 
+let cfListenSince = 0;
+
 async function cfPollMessages() {
   try {
-    const res = await fetch(TG_API + '/getUpdates?offset=' + (_lastUpdateId + 1) + '&timeout=0');
+    // Always read from the start without an offset param so we never
+    // acknowledge/consume updates — Telegram keeps the last ~24h of
+    // updates available as long as we don't pass an offset that
+    // advances past them.
+    const res = await fetch(TG_API + '/getUpdates?limit=100');
     if (!res.ok) return;
     const data = await res.json();
     if (!data.ok || !data.result.length) return;
     data.result.forEach(function(upd) {
-      _lastUpdateId = upd.update_id;
       const msg = upd.message;
       if (!msg || !msg.text) return;
-      // Only accept messages posted in the orders group
+      if (msg.date < cfListenSince) return; // ignore anything before chat opened
       const fromGroup = String(msg.chat && msg.chat.id) === TG_CHAT;
       if (!fromGroup) return;
       const tag = '[' + cfRoomId + ']';
       const hasTag = msg.text.indexOf(tag) !== -1;
-      if (hasTag) {
-        const reply = msg.text.replace(tag, '').trim();
-        const time = new Date(msg.date * 1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-        cfAddMsg('admin', reply, time);
-      }
+      if (!hasTag) return;
+      const msgKey = upd.update_id;
+      if (cfSeenUpdates.has(msgKey)) return;
+      cfSeenUpdates.add(msgKey);
+      const reply = msg.text.replace(tag, '').trim();
+      const time = new Date(msg.date * 1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      cfAddMsg('admin', reply, time);
     });
   } catch(e) {}
 }
+const cfSeenUpdates = new Set();
 
 function cfStartListening() {
-  // Get current offset THEN start polling — ensures we catch replies
-  // that arrive immediately after the order notification
-  fetch(TG_API + '/getUpdates?limit=100&offset=-1')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      if (d.ok && d.result.length) {
-        _lastUpdateId = d.result[d.result.length - 1].update_id;
-      }
-      // Start polling only after offset is anchored
-      setInterval(cfPollMessages, 2000);
-    }).catch(function() {
-      setInterval(cfPollMessages, 2000);
-    });
+  // Anchor to "now" using message timestamps instead of consuming the
+  // update queue (offset=-1 acknowledges/deletes pending updates, which
+  // breaks polling for other customers using the bot at the same time)
+  cfListenSince = Math.floor(Date.now() / 1000);
+  setInterval(cfPollMessages, 2000);
 }
 
 
