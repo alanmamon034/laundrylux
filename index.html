@@ -145,6 +145,27 @@
   .how-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; }
   .how-step { padding: 28px; background: rgba(255,255,255,0.05); border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); }
   .step-num { font-size: 36px; font-weight: 800; color: var(--accent); margin-bottom: 12px; }
+
+  /* Reviews section */
+  .reviews-section { padding: 72px 5%; background: var(--off-white); }
+  .reviews-badges { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 40px; }
+  .review-badge { display: flex; align-items: center; gap: 12px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px 22px; text-decoration: none; color: var(--dark); transition: transform 0.15s, box-shadow 0.15s; }
+  .review-badge:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+  .review-badge-icon { width: 36px; height: 36px; flex-shrink: 0; }
+  .review-badge-text { display: flex; flex-direction: column; }
+  .review-badge-name { font-size: 13px; font-weight: 700; }
+  .review-badge-stars { font-size: 12px; color: var(--amber); letter-spacing: 1px; margin-top: 2px; }
+  .review-badge-count { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .reviews-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; }
+  .review-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .review-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .review-card-stars { color: var(--amber); font-size: 13px; letter-spacing: 1px; }
+  .review-card-source { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  .review-card-text { font-size: 14px; line-height: 1.6; color: var(--dark); margin-bottom: 14px; }
+  .review-card-author { display: flex; align-items: center; gap: 10px; }
+  .review-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  .review-author-name { font-size: 13px; font-weight: 600; }
+  .review-author-date { font-size: 11px; color: var(--muted); }
   .step-title { font-size: 17px; font-weight: 600; margin-bottom: 8px; }
   .step-desc { font-size: 14px; color: rgba(255,255,255,0.55); line-height: 1.6; }
 
@@ -283,6 +304,7 @@
   <ul class="nav-links">
     <li><a href="#products">Shop</a></li>
     <li><a href="#how">How it works</a></li>
+    <li><a href="#reviews">Reviews</a></li>
     <li><a href="#delivery">Delivery</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
@@ -347,6 +369,59 @@
     <div class="how-step"><div class="step-num">02</div><div class="step-title">We grade it honestly</div><div class="step-desc">Grade A is like new. Grade B has light use marks. Grade C is fully functional with visible wear.</div></div>
     <div class="how-step"><div class="step-num">03</div><div class="step-title">You order online</div><div class="step-desc">Browse, pick your device, and check out securely. We accept M-Pesa and card payments.</div></div>
     <div class="how-step"><div class="step-num">04</div><div class="step-title">We deliver to you</div><div class="step-desc">Our own trucks deliver across Orlando. Same-day delivery available for orders before 1pm.</div></div>
+  </div>
+</section>
+
+<section class="reviews-section" id="reviews">
+  <h2 class="section-title">What customers are saying</h2>
+  <p class="section-sub">Real feedback from real LaundryLux deliveries.</p>
+
+  <div class="reviews-badges">
+    <!-- TODO: replace # with your real Google Business Profile review link once created -->
+    <a href="#" target="_blank" rel="noopener" class="review-badge">
+      <svg class="review-badge-icon" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20.4H24v7.2h11.3c-1.6 4.7-6 8.1-11.3 8.1-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.1-5.1C33.6 6.1 29 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l5.9 4.3C13.8 15.1 18.5 12 24 12c3 0 5.8 1.1 7.9 3l5.1-5.1C33.6 6.1 29 4 24 4c-7.6 0-14.1 4.3-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5 0 9.5-1.9 12.9-5.1l-6-5C29 35.5 26.6 36.4 24 36.4c-5.3 0-9.7-3.4-11.3-8.1l-6 4.6C9.9 39.5 16.4 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20.4H24v7.2h11.3c-.8 2.3-2.2 4.3-4.1 5.7l6 5C40.5 35.1 44 30 44 24c0-1.3-.1-2.7-.4-3.5z"/></svg>
+      <div class="review-badge-text">
+        <span class="review-badge-name">Google Reviews</span>
+        <span class="review-badge-stars">★★★★★</span>
+        <span class="review-badge-count">Coming soon — be our first review</span>
+      </div>
+    </a>
+    <!-- TODO: replace # with your real Trustpilot profile link once created -->
+    <a href="#" target="_blank" rel="noopener" class="review-badge">
+      <svg class="review-badge-icon" viewBox="0 0 24 24"><path fill="#00B67A" d="M12 1.5l3.09 6.26L22 8.74l-5 4.87 1.18 6.89L12 17.27l-6.18 3.23L7 13.61 2 8.74l6.91-.98L12 1.5z"/></svg>
+      <div class="review-badge-text">
+        <span class="review-badge-name">Trustpilot</span>
+        <span class="review-badge-stars">★★★★★</span>
+        <span class="review-badge-count">Coming soon — be our first review</span>
+      </div>
+    </a>
+  </div>
+
+  <div class="reviews-grid">
+    <div class="review-card">
+      <div class="review-card-top"><span class="review-card-stars">★★★★★</span><span class="review-card-source">Google</span></div>
+      <p class="review-card-text">"Ordered a washer and dryer set, delivered the same week. Everything was tested and working perfectly, exactly as graded."</p>
+      <div class="review-card-author">
+        <div class="review-avatar">M</div>
+        <div><div class="review-author-name">Marcus T.</div><div class="review-author-date">Sample review</div></div>
+      </div>
+    </div>
+    <div class="review-card">
+      <div class="review-card-top"><span class="review-card-stars">★★★★★</span><span class="review-card-source">Trustpilot</span></div>
+      <p class="review-card-text">"Great communication throughout — they kept me updated via chat the whole way and the delivery team was professional."</p>
+      <div class="review-card-author">
+        <div class="review-avatar">S</div>
+        <div><div class="review-author-name">Sarah K.</div><div class="review-author-date">Sample review</div></div>
+      </div>
+    </div>
+    <div class="review-card">
+      <div class="review-card-top"><span class="review-card-stars">★★★★★</span><span class="review-card-source">Google</span></div>
+      <p class="review-card-text">"Saved hundreds compared to buying new, and you genuinely cannot tell it's used. Will be ordering again."</p>
+      <div class="review-card-author">
+        <div class="review-avatar">D</div>
+        <div><div class="review-author-name">David A.</div><div class="review-author-date">Sample review</div></div>
+      </div>
+    </div>
   </div>
 </section>
 
