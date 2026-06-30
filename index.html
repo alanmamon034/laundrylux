@@ -983,7 +983,7 @@ async function cfSubmitAndChat() {
 
 // Telegram chat integration
 const TG_TOKEN = '8939267232:AAHQP2Xa4ooMGBoWeD-VaUwiL8BRHIiKTpw';
-const TG_CHAT  = '8708266505';
+const TG_CHAT  = '-5215935930'; // LaundryLux Orders group
 const TG_API   = 'https://api.telegram.org/bot' + TG_TOKEN;
 let _lastUpdateId = 0;
 
@@ -1016,12 +1016,12 @@ async function cfPollMessages() {
       _lastUpdateId = upd.update_id;
       const msg = upd.message;
       if (!msg || !msg.text) return;
-      // Show any message from the admin (your Telegram account)
-      // regardless of whether it has a tag or not
-      const fromAdmin = String(msg.from && msg.from.id) === TG_CHAT;
+      // Only accept messages posted in the orders group
+      const fromGroup = String(msg.chat && msg.chat.id) === TG_CHAT;
+      if (!fromGroup) return;
       const tag = '[' + cfRoomId + ']';
       const hasTag = msg.text.indexOf(tag) !== -1;
-      if (fromAdmin || hasTag) {
+      if (hasTag) {
         const reply = msg.text.replace(tag, '').trim();
         const time = new Date(msg.date * 1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
         cfAddMsg('admin', reply, time);
