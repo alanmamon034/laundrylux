@@ -1011,10 +1011,8 @@ let cfListenSince = 0;
 
 async function cfPollMessages() {
   try {
-    // Always read from the start without an offset param so we never
-    // acknowledge/consume updates — Telegram keeps the last ~24h of
-    // updates available as long as we don't pass an offset that
-    // advances past them.
+    // No offset param = never consumes/acknowledges updates, so every
+    // open customer chat can independently read the same backlog safely.
     const res = await fetch(TG_API + '/getUpdates?limit=100');
     if (!res.ok) return;
     const data = await res.json();
@@ -1040,9 +1038,6 @@ async function cfPollMessages() {
 const cfSeenUpdates = new Set();
 
 function cfStartListening() {
-  // Anchor to "now" using message timestamps instead of consuming the
-  // update queue (offset=-1 acknowledges/deletes pending updates, which
-  // breaks polling for other customers using the bot at the same time)
   cfListenSince = Math.floor(Date.now() / 1000) - 5; // 5s buffer for clock/race safety
   setInterval(cfPollMessages, 2000);
 }
