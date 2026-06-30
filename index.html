@@ -498,7 +498,7 @@
 
       <!-- Input -->
       <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
-        <input id="cf-msg-input" placeholder="Type a message..." style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:13px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')sendChatMsg()" />
+        <input id="cf-msg-input" placeholder="Type a message..." style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:13px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')cfSendMsg()" />
         <button onclick="cfSendMsg()" style="background:#4F46E5;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">Send</button>
       </div>
     </div>
@@ -609,7 +609,7 @@
 
       <!-- Input -->
       <div style="padding:12px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0">
-        <input id="cf-msg-input" placeholder="Type a message..." style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:13px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')sendChatMsg()" />
+        <input id="cf-msg-input" placeholder="Type a message..." style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;font-size:13px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')cfSendMsg()" />
         <button onclick="cfSendMsg()" style="background:#4F46E5;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer">Send</button>
       </div>
     </div>
@@ -1011,29 +1011,29 @@ let cfListenSince = 0;
 
 async function cfPollMessages() {
   try {
-    // No offset param = never consumes/acknowledges updates, so every
-    // open customer chat can independently read the same backlog safely.
     const res = await fetch(TG_API + '/getUpdates?limit=100');
-    if (!res.ok) return;
+    if (!res.ok) { console.warn('TG poll failed:', res.status); return; }
     const data = await res.json();
     if (!data.ok || !data.result.length) return;
+    console.log('TG poll: got', data.result.length, 'updates, looking for tag', '[' + cfRoomId + ']');
     data.result.forEach(function(upd) {
       const msg = upd.message;
       if (!msg || !msg.text) return;
-      if (msg.date < cfListenSince) return; // ignore anything before chat opened
+      if (msg.date < cfListenSince) { console.log('skip (too old):', msg.text.slice(0,40)); return; }
       const fromGroup = String(msg.chat && msg.chat.id) === TG_CHAT;
-      if (!fromGroup) return;
+      if (!fromGroup) { console.log('skip (wrong chat):', msg.chat && msg.chat.id); return; }
       const tag = '[' + cfRoomId + ']';
       const hasTag = msg.text.indexOf(tag) !== -1;
-      if (!hasTag) return;
+      if (!hasTag) { console.log('skip (no tag):', msg.text.slice(0,40)); return; }
       const msgKey = upd.update_id;
-      if (cfSeenUpdates.has(msgKey)) return;
+      if (cfSeenUpdates.has(msgKey)) { console.log('skip (already shown):', msgKey); return; }
       cfSeenUpdates.add(msgKey);
       const reply = msg.text.replace(tag, '').trim();
       const time = new Date(msg.date * 1000).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+      console.log('SHOWING message:', reply);
       cfAddMsg('admin', reply, time);
     });
-  } catch(e) {}
+  } catch(e) { console.error('TG poll error:', e); }
 }
 const cfSeenUpdates = new Set();
 
