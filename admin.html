@@ -144,27 +144,35 @@
   <div style="background:#fff;border-radius:14px;padding:32px 28px;max-width:340px;width:100%;text-align:center;">
     <div style="font-size:32px;margin-bottom:10px">🔒</div>
     <h2 style="font-size:17px;font-weight:700;margin-bottom:6px;color:#1A1A2E">Admin access</h2>
-    <p style="font-size:13px;color:#6B7280;margin-bottom:18px">Enter the admin password to continue.</p>
-    <input type="password" id="admin-pw-input" placeholder="Password" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:11px 12px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box" onkeydown="if(event.key==='Enter')checkAdminPassword()">
-    <div id="admin-pw-error" style="display:none;color:#EF4444;font-size:12px;margin-bottom:10px">Incorrect password. Try again.</div>
+    <p style="font-size:13px;color:#6B7280;margin-bottom:18px">Enter your admin credentials to continue.</p>
+    <input type="text" id="admin-user-input" placeholder="Username" autocomplete="username" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:11px 12px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box">
+    <input type="password" id="admin-pw-input" placeholder="Password" autocomplete="current-password" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:11px 12px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box" onkeydown="if(event.key==='Enter')checkAdminPassword()">
+    <div id="admin-pw-error" style="display:none;color:#EF4444;font-size:12px;margin-bottom:10px">Incorrect username or password. Try again.</div>
     <button onclick="checkAdminPassword()" style="width:100%;background:#2563EB;color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:700;cursor:pointer">Unlock</button>
   </div>
 </div>
 
 <script>
-const ADMIN_PASSWORD = 'LaundryLux2026!';
+const ADMIN_USERNAME = 'Viktacher';
+const ADMIN_PASSWORD = 'Cheru2801$$';
 
 function checkAdminPassword() {
-  const input = document.getElementById('admin-pw-input');
+  const userInput = document.getElementById('admin-user-input');
+  const pwInput = document.getElementById('admin-pw-input');
   const error = document.getElementById('admin-pw-error');
-  if (input.value === ADMIN_PASSWORD) {
+  if (userInput.value.trim() === ADMIN_USERNAME && pwInput.value === ADMIN_PASSWORD) {
     try { localStorage.setItem('ll_admin_unlocked', 'true'); } catch(e) {}
     document.getElementById('admin-lock').style.display = 'none';
   } else {
     error.style.display = 'block';
-    input.value = '';
-    input.focus();
+    pwInput.value = '';
+    pwInput.focus();
   }
+}
+
+function adminLogout() {
+  try { localStorage.removeItem('ll_admin_unlocked'); } catch(e) {}
+  location.reload();
 }
 
 (function() {
@@ -189,6 +197,7 @@ function checkAdminPassword() {
   </div>
   <div style="display:flex;align-items:center;gap:16px">
     <div class="fb-status"><div class="fb-dot" id="fb-dot"></div><span id="fb-status-text">Connecting…</span></div>
+    <a href="#" onclick="adminLogout();return false;" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none">🔒 Lock</a>
     <a href="index.html" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none">← Store</a>
   </div>
 </nav>
