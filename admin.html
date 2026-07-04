@@ -602,13 +602,26 @@ let pfImages = []; // images currently attached in the open form (base64 data UR
 
 async function loadProducts() {
   const grid = document.getElementById('products-grid');
+
+  let cached;
+  try { cached = JSON.parse(localStorage.getItem('ll_products_cache') || 'null'); } catch(e) { cached = null; }
+  if (cached && cached.length) {
+    allProducts = cached;
+    renderProductsGrid();
+  } else {
+    grid.innerHTML = '<div class="empty-products">Loading products…</div>';
+  }
+
   try {
     const res = await fetch(FB_URL + '/products.json');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     allProducts = data ? Object.values(data).sort((a,b) => (b.id||0) - (a.id||0)) : [];
+    try { localStorage.setItem('ll_products_cache', JSON.stringify(allProducts)); } catch(e) {}
   } catch(e) {
-    grid.innerHTML = '<div class="empty-products">Could not load products: ' + esc(e.message) + '</div>';
+    if (!cached || !cached.length) {
+      grid.innerHTML = '<div class="empty-products">Could not load products: ' + esc(e.message) + '</div>';
+    }
     return;
   }
   renderProductsGrid();
@@ -675,6 +688,7 @@ async function deleteProduct(id) {
     const res = await fetch(await authedUrl('/products/' + id + '.json'), { method: 'DELETE' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     allProducts = allProducts.filter(p => p.id !== id);
+    try { localStorage.setItem('ll_products_cache', JSON.stringify(allProducts)); } catch(e) {}
     renderProductsGrid();
     showToast('Product deleted');
   } catch(e) { showToast('Failed to delete: ' + e.message); }
@@ -739,6 +753,7 @@ async function saveProduct() {
     if (!res.ok) throw new Error('HTTP ' + res.status);
     const idx = allProducts.findIndex(p => p.id === id);
     if (idx >= 0) allProducts[idx] = product; else allProducts.unshift(product);
+    try { localStorage.setItem('ll_products_cache', JSON.stringify(allProducts)); } catch(e) {}
     renderProductsGrid();
     closeProductModal();
     showToast(existingId ? 'Product updated' : 'Product added — it will now appear on your store');
