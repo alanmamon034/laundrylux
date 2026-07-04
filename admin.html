@@ -140,6 +140,44 @@
 </head>
 <body>
 
+<div id="admin-lock" style="position:fixed;inset:0;background:#1A1A2E;display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;">
+  <div style="background:#fff;border-radius:14px;padding:32px 28px;max-width:340px;width:100%;text-align:center;">
+    <div style="font-size:32px;margin-bottom:10px">🔒</div>
+    <h2 style="font-size:17px;font-weight:700;margin-bottom:6px;color:#1A1A2E">Admin access</h2>
+    <p style="font-size:13px;color:#6B7280;margin-bottom:18px">Enter the admin password to continue.</p>
+    <input type="password" id="admin-pw-input" placeholder="Password" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:11px 12px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box" onkeydown="if(event.key==='Enter')checkAdminPassword()">
+    <div id="admin-pw-error" style="display:none;color:#EF4444;font-size:12px;margin-bottom:10px">Incorrect password. Try again.</div>
+    <button onclick="checkAdminPassword()" style="width:100%;background:#2563EB;color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:700;cursor:pointer">Unlock</button>
+  </div>
+</div>
+
+<script>
+const ADMIN_PASSWORD = 'LaundryLux2026!';
+
+function checkAdminPassword() {
+  const input = document.getElementById('admin-pw-input');
+  const error = document.getElementById('admin-pw-error');
+  if (input.value === ADMIN_PASSWORD) {
+    try { localStorage.setItem('ll_admin_unlocked', 'true'); } catch(e) {}
+    document.getElementById('admin-lock').style.display = 'none';
+  } else {
+    error.style.display = 'block';
+    input.value = '';
+    input.focus();
+  }
+}
+
+(function() {
+  let unlocked = false;
+  try { unlocked = localStorage.getItem('ll_admin_unlocked') === 'true'; } catch(e) {}
+  if (unlocked) {
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('admin-lock').style.display = 'none';
+    });
+  }
+})();
+</script>
+
 <nav>
   <div style="display:flex;align-items:center;gap:12px">
     <span class="nav-logo">Laundry<span>Lux</span></span>
