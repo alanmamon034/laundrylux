@@ -144,45 +144,94 @@
   <div style="background:#fff;border-radius:14px;padding:32px 28px;max-width:340px;width:100%;text-align:center;">
     <div style="font-size:32px;margin-bottom:10px">🔒</div>
     <h2 style="font-size:17px;font-weight:700;margin-bottom:6px;color:#1A1A2E">Admin access</h2>
-    <p style="font-size:13px;color:#6B7280;margin-bottom:18px">Enter your admin credentials to continue.</p>
-    <input type="text" id="admin-user-input" placeholder="Username" autocomplete="username" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:11px 12px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box">
+    <p style="font-size:13px;color:#6B7280;margin-bottom:18px">Sign in to manage your store.</p>
+    <input type="email" id="admin-user-input" placeholder="Email" autocomplete="username" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:11px 12px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box">
     <input type="password" id="admin-pw-input" placeholder="Password" autocomplete="current-password" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:11px 12px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box" onkeydown="if(event.key==='Enter')checkAdminPassword()">
-    <div id="admin-pw-error" style="display:none;color:#EF4444;font-size:12px;margin-bottom:10px">Incorrect username or password. Try again.</div>
-    <button onclick="checkAdminPassword()" style="width:100%;background:#2563EB;color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:700;cursor:pointer">Unlock</button>
+    <div id="admin-pw-error" style="display:none;color:#EF4444;font-size:12px;margin-bottom:10px">Incorrect email or password. Try again.</div>
+    <button id="admin-unlock-btn" onclick="checkAdminPassword()" style="width:100%;background:#2563EB;color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:700;cursor:pointer">Sign in</button>
   </div>
 </div>
 
 <script>
-const ADMIN_USERNAME = 'Viktacher';
-const ADMIN_PASSWORD = 'Cheru2801$$';
+const FIREBASE_API_KEY = 'AIzaSyAgqZWNc1f-wRufI7xdezh5rxrY5eT9_kw';
+const AUTH_SIGNIN_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + FIREBASE_API_KEY;
+const AUTH_REFRESH_URL = 'https://securetoken.googleapis.com/v1/token?key=' + FIREBASE_API_KEY;
+const AUTH_STORAGE_KEY = 'll_admin_session';
 
-function checkAdminPassword() {
+function saveSession(data) {
+  const session = {
+    idToken: data.idToken,
+    refreshToken: data.refreshToken,
+    expiresAt: Date.now() + (parseInt(data.expiresIn || '3600') * 1000)
+  };
+  try { localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session)); } catch(e) {}
+  return session;
+}
+
+function getSession() {
+  try { return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null'); } catch(e) { return null; }
+}
+
+function clearSession() {
+  try { localStorage.removeItem(AUTH_STORAGE_KEY); } catch(e) {}
+}
+
+async function getValidIdToken() {
+  let session = getSession();
+  if (!session) return null;
+  if (Date.now() < session.expiresAt - 60000) return session.idToken;
+
+  try {
+    const res = await fetch(AUTH_REFRESH_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(session.refreshToken)
+    });
+    if (!res.ok) { clearSession(); return null; }
+    const data = await res.json();
+    session = saveSession({ idToken: data.id_token, refreshToken: data.refresh_token, expiresIn: data.expires_in });
+    return session.idToken;
+  } catch(e) { clearSession(); return null; }
+}
+
+async function checkAdminPassword() {
   const userInput = document.getElementById('admin-user-input');
   const pwInput = document.getElementById('admin-pw-input');
   const error = document.getElementById('admin-pw-error');
-  if (userInput.value.trim() === ADMIN_USERNAME && pwInput.value === ADMIN_PASSWORD) {
-    try { localStorage.setItem('ll_admin_unlocked', 'true'); } catch(e) {}
+  const btn = document.getElementById('admin-unlock-btn');
+  error.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Signing in…';
+
+  try {
+    const res = await fetch(AUTH_SIGNIN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: userInput.value.trim(), password: pwInput.value, returnSecureToken: true })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error?.message || 'Login failed');
+    saveSession(data);
     document.getElementById('admin-lock').style.display = 'none';
-  } else {
+  } catch(e) {
+    error.textContent = 'Incorrect email or password. Try again.';
     error.style.display = 'block';
     pwInput.value = '';
     pwInput.focus();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sign in';
   }
 }
 
 function adminLogout() {
-  try { localStorage.removeItem('ll_admin_unlocked'); } catch(e) {}
+  clearSession();
   location.reload();
 }
 
-(function() {
-  let unlocked = false;
-  try { unlocked = localStorage.getItem('ll_admin_unlocked') === 'true'; } catch(e) {}
-  if (unlocked) {
-    document.addEventListener('DOMContentLoaded', () => {
-      document.getElementById('admin-lock').style.display = 'none';
-    });
-  }
+(async function() {
+  const token = await getValidIdToken();
+  document.getElementById('admin-lock').style.display = token ? 'none' : 'flex';
 })();
 </script>
 
@@ -338,6 +387,13 @@ function adminLogout() {
 <script>
 // Firebase via plain REST — no SDK, works everywhere
 const FB_URL = 'https://laundrylux-f47d7-default-rtdb.firebaseio.com';
+
+async function authedUrl(path) {
+  let token = '';
+  try { token = await getValidIdToken(); } catch(e) {}
+  const sep = path.indexOf('?') === -1 ? '?' : '&';
+  return FB_URL + path + (token ? sep + 'auth=' + token : '');
+}
 
 // Check connectivity by pinging Firebase
 async function checkConnection() {
@@ -616,7 +672,7 @@ function editProduct(id) {
 async function deleteProduct(id) {
   if (!confirm('Delete this product? This cannot be undone.')) return;
   try {
-    const res = await fetch(FB_URL + '/products/' + id + '.json', { method: 'DELETE' });
+    const res = await fetch(await authedUrl('/products/' + id + '.json'), { method: 'DELETE' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
     allProducts = allProducts.filter(p => p.id !== id);
     renderProductsGrid();
@@ -675,7 +731,7 @@ async function saveProduct() {
   };
 
   try {
-    const res = await fetch(FB_URL + '/products/' + id + '.json', {
+    const res = await fetch(await authedUrl('/products/' + id + '.json'), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(product)
