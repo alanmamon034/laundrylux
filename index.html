@@ -808,44 +808,9 @@ const IMGS = {
   drawer: "images/img_524dcc838aa5.jpg",
 };
 
-const products = [
-  { id:20, name:'iPhone 17 Pro Max', category:'phone', grade:'A', price:480, currency:'USD', emoji:'📱',
-    images:["images/img_16ae5bb36078.jpg","images/img_a13a4603ccbe.jpg","images/img_80995a401fd3.jpg","images/img_e283aee72bbf.jpg"],
-    specs:'256GB · Blue · Unlocked · Grade A', includes:'✓ 100-Day Warranty', stock:6 },
-  { id:21, name:'iPhone 16 Pro Max', category:'phone', grade:'B', price:980, currency:'USD', emoji:'📱',
-    images:["images/img_e65cf898ae57.jpg","images/img_56e557286372.jpg","images/img_3974557788a6.jpg","images/img_93053596f89f.jpg"],
-    specs:'Space Black · Unlocked · Battery 96% · 271 cycles · iOS 26.2', includes:'✓ Charger · Box · All accessories', stock:1 },
-  { id:22, name:'Samsung Galaxy S22 Ultra', category:'phone', grade:'A', price:470, currency:'USD', emoji:'📱',
-    images:["images/img_2c86c2ffed23.jpg","images/img_6eb90946a8ff.jpg"],
-    specs:'Phantom Black · S Pen · Original Box', includes:'✓ S Pen · Original box included', stock:9 },
-  { id:23, name:'MacBook Pro 14\" (M1 Pro)', category:'laptop', grade:'B', price:480, currency:'USD', emoji:'💻',
-    images:["images/img_6dc795e7b62e.jpg","images/img_a7c6cfcc8379.jpg","images/img_9cf180cdee43.jpg","images/img_36614bf7a7a3.jpg"],
-    specs:'M1 Pro · 16GB RAM · 512GB SSD · Battery 89% · 270 cycles · macOS Tahoe', includes:'✓ Charger included', stock:1 },
-  { id:24, name:'Dell XPS 13', category:'laptop', grade:'B', price:440, currency:'USD', emoji:'💻',
-    images:["images/img_094b57405693.jpg","images/img_10ce5fcbb4e1.jpg","images/img_657dee2b4cd4.jpg","images/img_2e71f1082156.jpg"],
-    specs:'i7-8565U · 16GB RAM · 940GB SSD · Win 11 · Carbon Fiber', includes:'✓ Charger · Original box · Sleeve', stock:4 },
-  { id:25, name:'AirPods Max — Starlight', category:'phone', grade:'A', price:220, currency:'USD', emoji:'🎧',
-    images:["images/img_e7b051dffb76.jpg","images/img_e52b16ecf79f.jpg","images/img_9c3973d9ddcb.jpg"],
-    specs:'Model A3184 · Starlight · Original box', includes:'✓ Original box included', stock:1 },
-  { id:26, name:'iPad Air 5th Gen', category:'tablet', grade:'A', price:300, currency:'USD', emoji:'📟',
-    images:["images/img_da80ce76a80f.jpg","images/img_76000ea20481.jpg","images/img_e6612183e950.jpg"],
-    specs:'256GB · Purple · USB-C · Touch ID · Wi-Fi', includes:'✓ Charger included', stock:1 },
-  { id:27, name:'LG Washer — Black Steel', category:'washer', grade:'A', price:380, currency:'USD', emoji:'🫧',
-    images:["images/img_d54733241442.jpg","images/img_b7f005408d21.jpg"],
-    specs:'5.0 cu ft · Black Steel · Energy Star · Pedestal included', includes:'✓ Pedestal · Water inlet hoses · 10yr motor warranty', stock:7 },
-  { id:28, name:'LG Washer & Dryer Set — Silver/Graphite', category:'washer', grade:'A', price:250, currency:'USD', emoji:'🫧',
-    images:["images/img_3cec53da562b.jpg","images/img_acbd8774982e.jpg","images/img_3e9ab808d5ad.jpg","images/img_ef5fa4ed4c5d.jpg"],
-    specs:'TrueSteam · Sensor Dry · Pedestals included · Direct Drive', includes:'✓ Washer & Dryer set · Pedestals · Water inlet hoses · 10yr motor warranty', stock:6 },
-  { id:29, name:'Samsung Washer & Dryer Set — Platinum/Black', category:'washer', grade:'A', price:390, currency:'USD', emoji:'🫧',
-    images:["images/img_a962cb96d9c5.jpg","images/img_5671df7ecf4e.jpg","images/img_718e233e89eb.jpg","images/img_3c13ad5d68ce.jpg","images/img_52b6c3f8c233.jpg"],
-    specs:'SuperSpeed Steam · MultiSteam · Moisture Sensor · Smart Care', includes:'✓ Washer & Dryer set · Water inlet hoses', stock:13 },
-  { id:30, name:'LG Washer & Dryer Set — White', category:'washer', grade:'A', price:250, currency:'USD', emoji:'🫧',
-    images:["images/img_d5a853284250.jpg","images/img_1782d7d0a771.jpg","images/img_e9b837288071.jpg","images/img_d3b5680c9de5.jpg"],
-    specs:'Direct Drive · TrueBalance · Steam', includes:'✓ Washer & Dryer set · Water inlet hoses · 10yr motor warranty', stock:18 },
-  { id:31, name:'LG TROMM Washer & Dryer Set — White', category:'washer', grade:'A', price:340, currency:'USD', emoji:'🫧',
-    images:["images/img_0d2928c260b4.jpg","images/img_986e36d924eb.jpg","images/img_d7dbc62945a5.jpg"],
-    specs:'TROMM · Direct Drive · Steam · TrueBalance', includes:'✓ Washer & Dryer set · Water inlet hoses · 10yr motor warranty', stock:8 },
-];
+// Products are loaded from Firebase (admin panel is the source of truth).
+// Do NOT hardcode products here — use the admin panel to add/edit/delete.
+const products = [];
 
 let cart = [];
 let activeFilter = 'all';
@@ -872,7 +837,14 @@ function renderProducts() {
       return matchCat && matchSearch;
     });
   }
-  if (!filtered.length) { grid.innerHTML='<p style="color:var(--muted);padding:40px 0">No devices found.</p>'; return; }
+  if (!filtered.length) {
+    if (window._productsLoading) {
+      const skel = '<div style="background:#fff;border-radius:16px;border:1px solid var(--border);overflow:hidden"><div style="height:220px;background:#F1F0EB"></div><div style="padding:16px 18px"><div style="height:10px;background:#eee;border-radius:4px;width:40%;margin-bottom:10px"></div><div style="height:14px;background:#eee;border-radius:4px;width:75%;margin-bottom:8px"></div><div style="height:10px;background:#eee;border-radius:4px;width:60%"></div></div></div>';
+      grid.innerHTML = skel.repeat(6);
+      return;
+    }
+    grid.innerHTML='<p style="color:var(--muted);padding:40px 0">No devices found.</p>'; return;
+  }
 
   grid.innerHTML = filtered.map(p => {
     const mainImg = p.images && p.images.length > 0
@@ -1428,13 +1400,9 @@ function openSharedProductIfAny() {
 
   const exists = products.some(p => String(p.id) === String(id));
   if (!exists) {
-    // Stay silent — Firebase may not have loaded yet. The toast will fire
-    // on the second call (after loadRemoteProducts) if it's truly missing.
-    if (window._sharedProductChecked) showToast('That item is no longer available.');
-    window._sharedProductChecked = true;
+    showToast('That item is no longer available.');
     return;
   }
-  window._sharedProductChecked = true;
   sharedOnlyId = id;
   renderProducts();
   window.scrollTo({ top: document.getElementById('shared-product-banner').offsetTop - 90, behavior: 'smooth' });
@@ -1461,6 +1429,15 @@ async function loadRemoteProducts() {
   let cached;
   try { cached = JSON.parse(localStorage.getItem(PRODUCTS_CACHE_KEY) || 'null'); } catch(e) { cached = null; }
 
+  // Show cache instantly if available, otherwise show loading skeletons
+  if (cached && cached.length) {
+    replaceProductsWith(cached);
+    window._productsLoading = false;
+  } else {
+    window._productsLoading = true;
+  }
+  renderProducts();
+
   const fetchPromise = (async () => {
     const res = await fetch(FB_URL + '/products.json');
     if (!res.ok) throw new Error('HTTP ' + res.status);
@@ -1470,43 +1447,26 @@ async function loadRemoteProducts() {
     return remoteProducts;
   })();
 
-  const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 1800));
-  timeout.catch(() => {});
-
-  let usedCacheFirst = false;
+  let usedCacheFirst = cached && cached.length > 0;
   try {
-    // Try to get fresh, accurate data quickly — this is now the common case.
-    const remoteProducts = await Promise.race([fetchPromise, timeout]);
+    // Always fetch fresh data from Firebase — admin panel is source of truth
+    const remoteProducts = await fetchPromise;
+    window._productsLoading = false;
     replaceProductsWith(remoteProducts);
     try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(remoteProducts)); } catch(e) {}
+    renderProducts();
   } catch (e) {
-    // Live check is slow this time — show the last known snapshot instantly instead of a blank page.
-    if (cached && cached.length) {
-      replaceProductsWith(cached);
-      usedCacheFirst = true;
+    window._productsLoading = false;
+    if (!usedCacheFirst) {
+      document.getElementById('product-grid').innerHTML = '<p style="color:var(--muted);padding:40px 0">Could not load products. Please refresh the page.</p>';
     }
   }
-  renderProducts();
 
-  if (usedCacheFirst) {
-    // The slow fetch may still resolve in the background — apply it when it does.
-    fetchPromise.then(remoteProducts => {
-      replaceProductsWith(remoteProducts);
-      try { localStorage.setItem(PRODUCTS_CACHE_KEY, JSON.stringify(remoteProducts)); } catch(e) {}
-      renderProducts();
-    }).catch(e => console.warn('Could not load latest products:', e));
-  }
-
+  openSharedProductIfAny();
   checkForDraft();
   checkForActiveOrder();
-  // Re-apply the shared product filter now that products are loaded from Firebase.
-  openSharedProductIfAny();
 }
 loadRemoteProducts();
-
-// Also run immediately from the local products array above — so the shared
-// product shows right away without waiting for Firebase.
-openSharedProductIfAny();
 </script>
 
 
