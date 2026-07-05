@@ -363,6 +363,11 @@ function adminLogout() {
       <input type="text" id="pf-includes" placeholder="e.g. ✓ Device · Charger · Box">
     </div>
 
+    <div class="form-row" style="display:flex;align-items:center;gap:8px;background:#FEF3C7;padding:10px 12px;border-radius:8px;">
+      <input type="checkbox" id="pf-featured" style="width:auto;margin:0">
+      <label for="pf-featured" style="margin:0;font-size:13px;color:#92400E;cursor:pointer">⭐ Feature this product at the top of the store</label>
+    </div>
+
     <div class="form-row">
       <label>Product Photos</label>
       <div class="cf-upload" id="pf-upload-zone" onclick="document.getElementById('pf-file-input').click()">
@@ -668,6 +673,7 @@ function openProductModal(product) {
   document.getElementById('pf-stock').value = product ? (product.stock != null ? product.stock : 1) : 1;
   document.getElementById('pf-specs').value = product ? (product.specs || '') : '';
   document.getElementById('pf-includes').value = product ? (product.includes || '') : '';
+  document.getElementById('pf-featured').checked = product ? !!product.featured : false;
   if (product && product.images) pfImages = [...product.images];
   renderImgPreview();
   document.getElementById('product-modal-overlay').classList.add('open');
@@ -770,6 +776,7 @@ async function saveProduct() {
     stock: parseInt(document.getElementById('pf-stock').value) || 0,
     specs: document.getElementById('pf-specs').value.trim(),
     includes: document.getElementById('pf-includes').value.trim(),
+    featured: document.getElementById('pf-featured').checked,
     images: pfImages
   };
 
