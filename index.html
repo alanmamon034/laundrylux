@@ -1428,9 +1428,13 @@ function openSharedProductIfAny() {
 
   const exists = products.some(p => String(p.id) === String(id));
   if (!exists) {
-    showToast('That item is no longer available.');
+    // Stay silent — Firebase may not have loaded yet. The toast will fire
+    // on the second call (after loadRemoteProducts) if it's truly missing.
+    if (window._sharedProductChecked) showToast('That item is no longer available.');
+    window._sharedProductChecked = true;
     return;
   }
+  window._sharedProductChecked = true;
   sharedOnlyId = id;
   renderProducts();
   window.scrollTo({ top: document.getElementById('shared-product-banner').offsetTop - 90, behavior: 'smooth' });
@@ -1493,11 +1497,16 @@ async function loadRemoteProducts() {
     }).catch(e => console.warn('Could not load latest products:', e));
   }
 
-  openSharedProductIfAny();
   checkForDraft();
   checkForActiveOrder();
+  // Re-apply the shared product filter now that products are loaded from Firebase.
+  openSharedProductIfAny();
 }
 loadRemoteProducts();
+
+// Also run immediately from the local products array above — so the shared
+// product shows right away without waiting for Firebase.
+openSharedProductIfAny();
 </script>
 
 
