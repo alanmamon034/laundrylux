@@ -403,7 +403,7 @@ async function authedUrl(path) {
 // Check connectivity by pinging Firebase
 async function checkConnection() {
   try {
-    const r = await fetch(FB_URL + '/.json?shallow=true');
+    const r = await fetch(FB_URL + '/products.json?shallow=true');
     const ok = r.ok;
     document.getElementById('fb-dot').className = 'fb-dot' + (ok ? ' connected' : '');
     document.getElementById('fb-status-text').textContent = ok ? 'Live' : 'Reconnecting…';
