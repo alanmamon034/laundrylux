@@ -3,812 +3,171 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LaundryLux — Admin</title>
+<title>LaundryLux — Migrate Photos to Cloudinary</title>
 <style>
-  :root {
-    --dark: #1A1A2E; --dark2: #16213E; --accent: #2563EB; --amber: #F59E0B;
-    --off-white: #F8F6F1; --muted: #6B7280; --border: #E5E3DE; --card: #FFFFFF;
-    --green: #10B981; --red: #EF4444;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--off-white); color: var(--dark); height: 100vh; display: flex; flex-direction: column; }
-
-  nav { background: var(--dark); color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 58px; flex-shrink: 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
-  .nav-logo { font-size: 18px; font-weight: 700; color: #fff; }
-  .nav-logo span { color: var(--accent); }
-  .badge { background: var(--amber); color: var(--dark); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
-  .fb-status { font-size: 12px; color: rgba(255,255,255,0.5); display: flex; align-items: center; gap: 6px; }
-  .fb-dot { width: 8px; height: 8px; border-radius: 50%; background: #6B7280; }
-  .fb-dot.connected { background: var(--green); }
-
-  .nav-tabs { display: flex; gap: 4px; }
-  .nav-tab { background: none; border: none; color: rgba(255,255,255,0.55); font-size: 13px; font-weight: 600; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
-  .nav-tab.active { background: rgba(255,255,255,0.1); color: #fff; }
-
-  .layout { display: flex; flex: 1; overflow: hidden; }
-
-  .sidebar { width: 320px; flex-shrink: 0; border-right: 1px solid var(--border); background: var(--card); display: flex; flex-direction: column; }
-  .sidebar-head { padding: 14px 16px; border-bottom: 1px solid var(--border); }
-  .sidebar-head h2 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
-  .filter-row { display: flex; gap: 6px; flex-wrap: wrap; }
-  .ftab { padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 500; border: 1.5px solid var(--border); background: none; color: var(--dark); cursor: pointer; }
-  .ftab.active { background: var(--dark); color: #fff; border-color: var(--dark); }
-  .orders-list { flex: 1; overflow-y: auto; }
-  .order-item { padding: 14px 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background 0.1s; }
-  .order-item:hover { background: var(--off-white); }
-  .order-item.active { background: #EFF6FF; border-left: 3px solid var(--accent); }
-  .oi-ref { font-size: 11px; font-weight: 700; color: var(--accent); font-family: monospace; margin-bottom: 3px; }
-  .oi-name { font-size: 14px; font-weight: 600; }
-  .oi-product { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .oi-meta { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
-  .oi-amount { font-size: 13px; font-weight: 700; }
-  .status-pill { font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 5px; text-transform: uppercase; }
-  .sp-pending   { background: #FEF3C7; color: #92400E; }
-  .sp-confirmed { background: #D1FAE5; color: #065F46; }
-  .sp-shipped   { background: #DBEAFE; color: #1E40AF; }
-  .sp-cancelled { background: #FEE2E2; color: #991B1B; }
-  .empty-orders { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 13px; }
-
-  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .no-selection { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 10px; color: var(--muted); }
-  .no-selection .icon { font-size: 48px; }
-  .no-selection p { font-size: 14px; }
-
-  .order-panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-  .order-detail { background: var(--card); border-bottom: 1px solid var(--border); padding: 14px 18px; flex-shrink: 0; }
-  .od-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; flex-wrap: wrap; gap: 8px; }
-  .od-ref { font-size: 12px; font-weight: 800; color: var(--accent); font-family: monospace; }
-  .od-name { font-size: 15px; font-weight: 700; }
-  .od-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
-  .od-field .od-label { font-size: 11px; color: var(--muted); font-weight: 500; }
-  .od-field .od-value { font-size: 13px; font-weight: 600; }
-  .od-field a { color: var(--accent); text-decoration: none; }
-  .status-actions { display: flex; gap: 7px; flex-wrap: wrap; }
-  .sa-btn { padding: 6px 13px; border-radius: 8px; font-size: 12px; font-weight: 600; border: none; cursor: pointer; }
-  .sa-confirm { background: var(--green); color: #fff; }
-  .sa-ship    { background: var(--accent); color: #fff; }
-  .sa-cancel  { background: #FEE2E2; color: var(--red); }
-
-  .chat-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #F9F8F5; }
-  .chat-head { padding: 9px 18px; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 600; color: var(--muted); background: var(--card); flex-shrink: 0; }
-  .chat-messages { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-  .msg-wrap { display: flex; flex-direction: column; }
-  .msg-wrap.customer { align-items: flex-end; }
-  .msg-wrap.admin    { align-items: flex-start; }
-  .msg-bubble { padding: 10px 14px; border-radius: 14px; font-size: 13px; max-width: 78%; line-height: 1.5; word-break: break-word; }
-  .msg-wrap.customer .msg-bubble { background: #4F46E5; color: #fff; border-radius: 14px 14px 4px 14px; }
-  .msg-wrap.admin    .msg-bubble { background: var(--card); border: 1px solid var(--border); border-radius: 14px 14px 14px 4px; }
-  .msg-time { font-size: 10px; color: var(--muted); margin-top: 3px; }
-  .chat-input-row { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 10px; background: var(--card); flex-shrink: 0; }
-  .chat-input-row textarea { flex: 1; border: 1.5px solid var(--border); border-radius: 10px; padding: 10px 12px; font-size: 13px; font-family: inherit; resize: none; outline: none; height: 42px; }
-  .chat-input-row textarea:focus { border-color: var(--accent); }
-  .send-btn { background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 0 18px; font-size: 13px; font-weight: 600; cursor: pointer; }
-
-  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--dark); color: #fff; padding: 10px 20px; border-radius: 10px; font-size: 13px; font-weight: 500; z-index: 999; transition: transform 0.3s; pointer-events: none; }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* ---- Products tab ---- */
-  .products-view { flex: 1; display: none; flex-direction: column; overflow: hidden; }
-  .products-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 22px; border-bottom: 1px solid var(--border); background: var(--card); flex-shrink: 0; }
-  .products-head h2 { font-size: 16px; font-weight: 700; }
-  .add-product-btn { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 9px 16px; font-size: 13px; font-weight: 700; cursor: pointer; }
-  .products-grid-wrap { flex: 1; overflow-y: auto; padding: 20px 22px; }
-  .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 14px; }
-  .pcard { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; }
-  .pcard-img { height: 130px; background: #F1EFEA; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-  .pcard-img img { width: 100%; height: 100%; object-fit: cover; }
-  .pcard-img span { font-size: 42px; }
-  .pcard-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
-  .pcard-cat { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 700; }
-  .pcard-name { font-size: 13.5px; font-weight: 700; line-height: 1.3; }
-  .pcard-price { font-size: 14px; font-weight: 800; color: var(--accent); margin-top: 2px; }
-  .pcard-stock { font-size: 11px; color: var(--muted); }
-  .pcard-actions { display: flex; gap: 6px; margin-top: 8px; }
-  .pcard-actions button { flex: 1; border: none; border-radius: 7px; padding: 6px 0; font-size: 11.5px; font-weight: 700; cursor: pointer; }
-  .pc-edit { background: #EFF6FF; color: var(--accent); }
-  .pc-del  { background: #FEE2E2; color: var(--red); }
-  .empty-products { text-align: center; padding: 60px 20px; color: var(--muted); font-size: 13px; }
-
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 500; padding: 20px; }
-  .modal-overlay.open { display: flex; }
-  .modal-box { background: var(--card); border-radius: 14px; width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; padding: 22px 24px; }
-  .modal-box h3 { font-size: 16px; font-weight: 800; margin-bottom: 16px; }
-  .form-row { margin-bottom: 12px; }
-  .form-row label { display: block; font-size: 12px; font-weight: 700; color: var(--muted); margin-bottom: 5px; }
-  .form-row input, .form-row select, .form-row textarea {
-    width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 9px 11px;
-    font-size: 13px; font-family: inherit; outline: none; background: #fff;
-  }
-  .form-row input:focus, .form-row select:focus, .form-row textarea:focus { border-color: var(--accent); }
-  .form-row textarea { resize: vertical; min-height: 60px; }
-  .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .form-hint { font-size: 11px; color: var(--muted); margin-top: 4px; }
-  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; }
-  .modal-btn { border: none; border-radius: 8px; padding: 10px 18px; font-size: 13px; font-weight: 700; cursor: pointer; }
-  .mb-cancel { background: #F1EFEA; color: var(--dark); }
-  .mb-save   { background: var(--accent); color: #fff; }
-  .cf-upload{border:2px dashed var(--border);border-radius:10px;padding:16px;text-align:center;cursor:pointer;transition:all 0.15s;margin-bottom:10px}
-  .cf-upload:hover{border-color:var(--accent);background:#f0f7ff}
-  .cf-upload-icon{font-size:26px;margin-bottom:4px}
-  .cf-upload-text{font-size:12.5px;font-weight:600;margin-bottom:2px}
-  .cf-upload-sub{font-size:10.5px;color:var(--muted)}
-  .img-preview-strip { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-  .img-preview-strip .ip-item { position: relative; width: 56px; height: 56px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
-  .img-preview-strip .ip-item img { width: 100%; height: 100%; object-fit: cover; }
-  .img-preview-strip .ip-remove { position: absolute; top: 1px; right: 1px; background: rgba(0,0,0,0.6); color: #fff; border: none; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; line-height: 1; cursor: pointer; }
+  :root { --dark:#1A1A2E; --accent:#2563EB; --green:#10B981; --red:#EF4444; --muted:#6B7280; --border:#E5E3DE; }
+  * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+  body { background:#F8F6F1; color:var(--dark); padding:40px 20px; }
+  .box { max-width:640px; margin:0 auto; background:#fff; border:1px solid var(--border); border-radius:14px; padding:28px 30px; }
+  h1 { font-size:20px; margin-bottom:8px; }
+  p { font-size:14px; color:var(--muted); line-height:1.5; margin-bottom:16px; }
+  button { background:var(--accent); color:#fff; border:none; border-radius:9px; padding:12px 20px; font-size:14px; font-weight:700; cursor:pointer; }
+  button:disabled { background:#9CA3AF; cursor:not-allowed; }
+  .log { margin-top:20px; background:#F8F6F1; border-radius:10px; padding:14px 16px; font-family:monospace; font-size:12.5px; max-height:360px; overflow-y:auto; white-space:pre-wrap; }
+  .ok { color:var(--green); } .err { color:var(--red); } .skip { color:var(--muted); }
+  .badge { display:inline-block; background:#FEF3C7; color:#92400E; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; margin-bottom:14px; }
 </style>
 </head>
 <body>
-
-<div id="admin-lock" style="position:fixed;inset:0;background:#1A1A2E;display:flex;align-items:center;justify-content:center;z-index:9999;padding:20px;">
-  <div style="background:#fff;border-radius:14px;padding:32px 28px;max-width:340px;width:100%;text-align:center;">
-    <div style="font-size:32px;margin-bottom:10px">🔒</div>
-    <h2 style="font-size:17px;font-weight:700;margin-bottom:6px;color:#1A1A2E">Admin access</h2>
-    <p style="font-size:13px;color:#6B7280;margin-bottom:18px">Sign in to manage your store.</p>
-    <input type="email" id="admin-user-input" placeholder="Email" autocomplete="username" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:11px 12px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box">
-    <input type="password" id="admin-pw-input" placeholder="Password" autocomplete="current-password" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:11px 12px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box" onkeydown="if(event.key==='Enter')checkAdminPassword()">
-    <div id="admin-pw-error" style="display:none;color:#EF4444;font-size:12px;margin-bottom:10px">Incorrect email or password. Try again.</div>
-    <button id="admin-unlock-btn" onclick="checkAdminPassword()" style="width:100%;background:#2563EB;color:#fff;border:none;border-radius:8px;padding:11px;font-size:14px;font-weight:700;cursor:pointer">Sign in</button>
+<div class="box">
+  <div class="badge">One-time tool — safe to delete after use</div>
+  <h1>Move existing photos to Cloudinary</h1>
+  <p>This uploads every photo currently embedded in your products to Cloudinary, then replaces the bulky data with short links — shrinking your database from several MB down to a few KB. Safe to run more than once; already-migrated photos are skipped.</p>
+  <div id="login-section">
+    <input type="email" id="login-email" placeholder="Admin email" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:10px 12px;font-size:14px;outline:none;margin-bottom:8px;box-sizing:border-box">
+    <input type="password" id="login-pw" placeholder="Password" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:10px 12px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box">
+    <button onclick="login()" style="width:100%">Sign in to continue</button>
+    <div id="login-error" style="display:none;color:#EF4444;font-size:12px;margin-top:8px">Incorrect email or password.</div>
   </div>
+  <div id="run-section" style="display:none">
+    <button id="run-btn" onclick="runMigration()">Migrate Photos to Cloudinary</button>
+  </div>
+  <div class="log" id="log">Sign in above to begin.</div>
 </div>
 
 <script>
+const FB_URL = 'https://laundrylux-f47d7-default-rtdb.firebaseio.com';
+const CLOUDINARY_CLOUD_NAME = 'z3yvdq52';
+const CLOUDINARY_UPLOAD_PRESET = 'laundrylux';
 const FIREBASE_API_KEY = 'AIzaSyAgqZWNc1f-wRufI7xdezh5rxrY5eT9_kw';
 const AUTH_SIGNIN_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + FIREBASE_API_KEY;
-const AUTH_REFRESH_URL = 'https://securetoken.googleapis.com/v1/token?key=' + FIREBASE_API_KEY;
-const AUTH_STORAGE_KEY = 'll_admin_session';
+let idToken = '';
 
-function saveSession(data) {
-  const session = {
-    idToken: data.idToken,
-    refreshToken: data.refreshToken,
-    expiresAt: Date.now() + (parseInt(data.expiresIn || '3600') * 1000)
-  };
-  try { localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session)); } catch(e) {}
-  return session;
-}
-
-function getSession() {
-  try { return JSON.parse(localStorage.getItem(AUTH_STORAGE_KEY) || 'null'); } catch(e) { return null; }
-}
-
-function clearSession() {
-  try { localStorage.removeItem(AUTH_STORAGE_KEY); } catch(e) {}
-}
-
-async function getValidIdToken() {
-  let session = getSession();
-  if (!session) return null;
-  if (Date.now() < session.expiresAt - 60000) return session.idToken;
-
-  try {
-    const res = await fetch(AUTH_REFRESH_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(session.refreshToken)
-    });
-    if (!res.ok) { clearSession(); return null; }
-    const data = await res.json();
-    session = saveSession({ idToken: data.id_token, refreshToken: data.refresh_token, expiresIn: data.expires_in });
-    return session.idToken;
-  } catch(e) { clearSession(); return null; }
-}
-
-async function checkAdminPassword() {
-  const userInput = document.getElementById('admin-user-input');
-  const pwInput = document.getElementById('admin-pw-input');
-  const error = document.getElementById('admin-pw-error');
-  const btn = document.getElementById('admin-unlock-btn');
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-pw').value;
+  const error = document.getElementById('login-error');
   error.style.display = 'none';
-  btn.disabled = true;
-  btn.textContent = 'Signing in…';
-
   try {
     const res = await fetch(AUTH_SIGNIN_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: userInput.value.trim(), password: pwInput.value, returnSecureToken: true })
+      body: JSON.stringify({ email, password, returnSecureToken: true })
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.error?.message || 'Login failed');
-    saveSession(data);
-    document.getElementById('admin-lock').style.display = 'none';
+    if (!res.ok) throw new Error();
+    idToken = data.idToken;
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('run-section').style.display = 'block';
+    document.getElementById('log').textContent = 'Signed in. Ready to start.';
   } catch(e) {
-    error.textContent = 'Incorrect email or password. Try again.';
     error.style.display = 'block';
-    pwInput.value = '';
-    pwInput.focus();
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Sign in';
   }
 }
 
-function adminLogout() {
-  clearSession();
-  location.reload();
+function log(msg, cls) {
+  const el = document.getElementById('log');
+  const line = document.createElement('div');
+  if (cls) line.className = cls;
+  line.textContent = msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
 }
 
-(async function() {
-  const token = await getValidIdToken();
-  document.getElementById('admin-lock').style.display = token ? 'none' : 'flex';
-})();
-</script>
-
-<nav>
-  <div style="display:flex;align-items:center;gap:12px">
-    <span class="nav-logo">Laundry<span>Lux</span></span>
-    <span class="badge" id="pending-badge">0 pending</span>
-  </div>
-  <div class="nav-tabs">
-    <button class="nav-tab active" id="tab-orders" onclick="switchTab('orders')">Orders</button>
-    <button class="nav-tab" id="tab-products" onclick="switchTab('products')">Products</button>
-  </div>
-  <div style="display:flex;align-items:center;gap:16px">
-    <div class="fb-status"><div class="fb-dot" id="fb-dot"></div><span id="fb-status-text">Connecting…</span></div>
-    <a href="#" onclick="adminLogout();return false;" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none">🔒 Lock</a>
-    <a href="index.html" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none">← Store</a>
-  </div>
-</nav>
-
-<div class="layout" id="orders-layout">
-  <div class="sidebar">
-    <div class="sidebar-head">
-      <h2>Orders</h2>
-      <div class="filter-row">
-        <button class="ftab active" onclick="setFilter('all',this)">All</button>
-        <button class="ftab" onclick="setFilter('pending',this)">Pending</button>
-        <button class="ftab" onclick="setFilter('confirmed',this)">Confirmed</button>
-        <button class="ftab" onclick="setFilter('shipped',this)">Shipped</button>
-      </div>
-    </div>
-    <div class="orders-list" id="orders-list">
-      <div class="empty-orders">No orders yet.</div>
-    </div>
-  </div>
-
-  <div class="main">
-    <div class="no-selection" id="no-selection">
-      <div class="icon">💬</div>
-      <p>Select an order to chat</p>
-    </div>
-    <div class="order-panel" id="order-panel" style="display:none;flex-direction:column;flex:1;overflow:hidden">
-      <div class="order-detail" id="order-detail"></div>
-      <div class="chat-area">
-        <div class="chat-head">Customer chat — replies appear instantly</div>
-        <div class="chat-messages" id="chat-messages"></div>
-        <div class="chat-input-row">
-          <textarea id="admin-input" placeholder="Type a reply… (Enter to send)" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAdminMsg();}"></textarea>
-          <button class="send-btn" onclick="sendAdminMsg()">Send</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ================= PRODUCTS TAB ================= -->
-<div class="products-view" id="products-view">
-  <div class="products-head">
-    <h2>Products <span style="color:var(--muted);font-weight:500" id="product-count"></span></h2>
-    <button class="add-product-btn" onclick="openProductModal()">+ Add Product</button>
-  </div>
-  <div class="products-grid-wrap">
-    <div class="products-grid" id="products-grid">
-      <div class="empty-products">Loading products…</div>
-    </div>
-  </div>
-</div>
-
-<!-- Add/Edit Product Modal -->
-<div class="modal-overlay" id="product-modal-overlay">
-  <div class="modal-box">
-    <h3 id="product-modal-title">Add Product</h3>
-    <input type="hidden" id="pf-id">
-
-    <div class="form-row">
-      <label>Product Name</label>
-      <input type="text" id="pf-name" placeholder="e.g. iPhone 16 Pro Max">
-    </div>
-
-    <div class="form-grid-2">
-      <div class="form-row">
-        <label>Category</label>
-        <select id="pf-category">
-          <option value="phone">Phone</option>
-          <option value="laptop">Laptop</option>
-          <option value="tablet">Tablet</option>
-          <option value="washer">Washer</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      <div class="form-row">
-        <label>Grade</label>
-        <select id="pf-grade">
-          <option value="A">A — Like New</option>
-          <option value="B">B — Good</option>
-          <option value="C">C — Functional</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="form-grid-2">
-      <div class="form-row">
-        <label>Price</label>
-        <input type="number" id="pf-price" placeholder="e.g. 980" min="0">
-      </div>
-      <div class="form-row">
-        <label>Currency</label>
-        <input type="text" id="pf-currency" value="USD">
-      </div>
-    </div>
-
-    <div class="form-grid-2">
-      <div class="form-row">
-        <label>Emoji (fallback icon)</label>
-        <input type="text" id="pf-emoji" placeholder="📱" value="📦">
-      </div>
-      <div class="form-row">
-        <label>Stock</label>
-        <input type="number" id="pf-stock" placeholder="1" value="1" min="0">
-      </div>
-    </div>
-
-    <div class="form-row">
-      <label>Specs (short line, use · to separate)</label>
-      <input type="text" id="pf-specs" placeholder="e.g. 256GB · Titanium · Unlocked">
-    </div>
-
-    <div class="form-row">
-      <label>What's Included</label>
-      <input type="text" id="pf-includes" placeholder="e.g. ✓ Device · Charger · Box">
-    </div>
-
-    <div class="form-row" style="display:flex;align-items:center;gap:8px;background:#FEF3C7;padding:10px 12px;border-radius:8px;">
-      <input type="checkbox" id="pf-featured" style="width:auto;margin:0">
-      <label for="pf-featured" style="margin:0;font-size:13px;color:#92400E;cursor:pointer">⭐ Feature this product at the top of the store</label>
-    </div>
-
-    <div class="form-row">
-      <label>Product Photos</label>
-      <div class="cf-upload" id="pf-upload-zone" onclick="document.getElementById('pf-file-input').click()">
-        <div class="cf-upload-icon">📷</div>
-        <div class="cf-upload-text">Click to upload photos</div>
-        <div class="cf-upload-sub">or drag & drop — JPG/PNG, multiple allowed</div>
-      </div>
-      <input type="file" id="pf-file-input" accept="image/*" multiple style="display:none" onchange="handleFileSelect(event)">
-      <div class="img-preview-strip" id="pf-img-preview"></div>
-      <div class="form-hint">Photos are stored directly with the product. First photo becomes the main image.</div>
-    </div>
-
-    <div class="modal-actions">
-      <button class="modal-btn mb-cancel" onclick="closeProductModal()">Cancel</button>
-      <button class="modal-btn mb-save" onclick="saveProduct()">Save Product</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<script>
-// Firebase via plain REST — no SDK, works everywhere
-const FB_URL = 'https://laundrylux-f47d7-default-rtdb.firebaseio.com';
-
-async function authedUrl(path) {
-  let token = '';
-  try { token = await getValidIdToken(); } catch(e) {}
-  const sep = path.indexOf('?') === -1 ? '?' : '&';
-  return FB_URL + path + (token ? sep + 'auth=' + token : '');
+function dataUrlToBlob(dataUrl) {
+  const parts = dataUrl.split(',');
+  const mime = parts[0].match(/:(.*?);/)[1];
+  const binary = atob(parts[1]);
+  const arr = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+  return new Blob([arr], { type: mime });
 }
 
-// Check connectivity by pinging Firebase
-async function checkConnection() {
-  try {
-    const r = await fetch(FB_URL + '/products.json?shallow=true');
-    const ok = r.ok;
-    document.getElementById('fb-dot').className = 'fb-dot' + (ok ? ' connected' : '');
-    document.getElementById('fb-status-text').textContent = ok ? 'Live' : 'Reconnecting…';
-  } catch(e) {
-    document.getElementById('fb-dot').className = 'fb-dot';
-    document.getElementById('fb-status-text').textContent = 'Offline';
-  }
-}
-checkConnection();
-setInterval(checkConnection, 10000);
-
-document.addEventListener("DOMContentLoaded", () => window._adminBoot());
-</script>
-
-<script>
-let orders = [], filter = 'all', activeRef = null, chatUnsub = null;
-
-window._adminBoot = function() {
-  loadOrders();
-  setInterval(pollOrders, 3000);
-  loadProducts();
-};
-
-/* ============ TAB SWITCHING ============ */
-function switchTab(tab) {
-  document.getElementById('tab-orders').classList.toggle('active', tab === 'orders');
-  document.getElementById('tab-products').classList.toggle('active', tab === 'products');
-  document.getElementById('orders-layout').style.display = tab === 'orders' ? 'flex' : 'none';
-  document.getElementById('products-view').style.display = tab === 'products' ? 'flex' : 'none';
+async function uploadToCloudinary(blob) {
+  const formData = new FormData();
+  formData.append('file', blob);
+  formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+  const res = await fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload', {
+    method: 'POST',
+    body: formData
+  });
+  const data = await res.json();
+  if (!data.secure_url) throw new Error(data.error?.message || 'Upload failed');
+  return data.secure_url;
 }
 
-function loadOrders() {
-  orders = JSON.parse(localStorage.getItem('ll_orders') || '[]');
-  orders.sort((a,b) => b.createdAt - a.createdAt);
-  renderList();
-  updateBadge();
-}
+async function runMigration() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  document.getElementById('log').innerHTML = '';
+  log('Fetching current products…');
 
-function pollOrders() {
-  const fresh = JSON.parse(localStorage.getItem('ll_orders') || '[]');
-  if (fresh.length !== orders.length) {
-    const prevLen = orders.length;
-    orders = fresh.sort((a,b) => b.createdAt - a.createdAt);
-    renderList();
-    updateBadge();
-    if (fresh.length > prevLen) showToast('New order received!');
-  }
-}
-
-function saveOrders() { localStorage.setItem('ll_orders', JSON.stringify(orders)); }
-
-function setFilter(f, el) {
-  filter = f;
-  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  renderList();
-}
-
-function renderList() {
-  const list = document.getElementById('orders-list');
-  const vis = filter === 'all' ? orders : orders.filter(o => o.status === filter);
-  if (!vis.length) { list.innerHTML = '<div class="empty-orders">No ' + (filter==='all'?'':filter+' ') + 'orders yet.</div>'; return; }
-  list.innerHTML = vis.map(o => `
-    <div class="order-item${activeRef===o.ref?' active':''}" onclick="selectOrder('${esc(o.ref)}')">
-      <div class="oi-ref">${esc(o.ref)}</div>
-      <div class="oi-name">${esc(o.customerName)}</div>
-      <div class="oi-product">${esc(o.productName)}</div>
-      <div class="oi-meta">
-        <span class="oi-amount">$${o.amount}</span>
-        <span class="status-pill sp-${o.status}">${o.status}</span>
-      </div>
-    </div>`).join('');
-}
-
-function updateBadge() {
-  document.getElementById('pending-badge').textContent = orders.filter(o=>o.status==='pending').length + ' pending';
-}
-
-function selectOrder(ref) {
-  activeRef = ref;
-  renderList();
-  const o = orders.find(x => x.ref === ref);
-  if (!o) return;
-
-  document.getElementById('no-selection').style.display = 'none';
-  const panel = document.getElementById('order-panel');
-  panel.style.display = 'flex';
-
-  document.getElementById('order-detail').innerHTML = `
-    <div class="od-top">
-      <div><div class="od-ref">${esc(o.ref)}</div><div class="od-name">${esc(o.customerName)}</div></div>
-      <div class="status-actions">
-        <button class="sa-btn sa-confirm" onclick="setStatus('${esc(o.ref)}','confirmed')">✓ Confirm</button>
-        <button class="sa-btn sa-ship"    onclick="setStatus('${esc(o.ref)}','shipped')">🚚 Shipped</button>
-        <button class="sa-btn sa-cancel"  onclick="setStatus('${esc(o.ref)}','cancelled')">✕ Cancel</button>
-      </div>
-    </div>
-    <div class="od-grid">
-      <div class="od-field"><div class="od-label">Product</div><div class="od-value">${esc(o.productName)}</div></div>
-      <div class="od-field"><div class="od-label">Amount</div><div class="od-value">$${o.amount} USD</div></div>
-      <div class="od-field"><div class="od-label">Payment</div><div class="od-value">${esc(o.paymentMethod||'—')}</div></div>
-      <div class="od-field"><div class="od-label">Phone</div><div class="od-value"><a href="tel:${esc(o.customerPhone)}">${esc(o.customerPhone)}</a></div></div>
-      <div class="od-field"><div class="od-label">Email</div><div class="od-value"><a href="mailto:${esc(o.customerEmail)}">${esc(o.customerEmail)}</a></div></div>
-      <div class="od-field"><div class="od-label">Address</div><div class="od-value">${esc(o.deliveryAddress||'—')}</div></div>
-    </div>`;
-
-  loadChat(o.ref);
-}
-
-let _pollInterval = null;
-let _lastMsgCount = 0;
-
-function loadChat(roomId) {
-  const msgs = document.getElementById('chat-messages');
-  msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted)">Loading messages…</div>';
-
-  // Clear any existing poll
-  if (_pollInterval) { clearInterval(_pollInterval); _pollInterval = null; }
-  _lastMsgCount = 0;
-
-  async function fetchMsgs() {
-    try {
-      const url = FB_URL + '/chats/' + roomId + '/messages.json';
-      const res = await fetch(url);
-      if (!res.ok) {
-        msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:red">Firebase error: ' + res.status + ' ' + res.statusText + '</div>';
-        return;
-      }
-      const data = await res.json();
-      if (!data) {
-        if (_lastMsgCount === 0) msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:var(--muted)">No messages yet.</div>';
-        return;
-      }
-      const all = Object.values(data).sort((a,b) => (a.ts||0) - (b.ts||0));
-      if (all.length !== _lastMsgCount) {
-        _lastMsgCount = all.length;
-        msgs.innerHTML = '';
-        all.forEach(msg => appendMsg(msg.role, msg.text, msg.time));
-      }
-    } catch(e) {
-      msgs.innerHTML = '<div style="text-align:center;padding:20px;font-size:12px;color:red">Fetch error: ' + e.message + '</div>';
-    }
-  }
-
-  fetchMsgs();
-  _pollInterval = setInterval(fetchMsgs, 2500);
-}
-
-function appendMsg(role, text, time) {
-  const msgs = document.getElementById('chat-messages');
-  const wrap = document.createElement('div');
-  wrap.className = 'msg-wrap ' + (role === 'admin' ? 'admin' : 'customer');
-  const t = time || new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  wrap.innerHTML = `<div class="msg-bubble">${esc(text).replace(/\n/g,'<br>')}</div><div class="msg-time">${t}</div>`;
-  msgs.appendChild(wrap);
-  msgs.scrollTop = msgs.scrollHeight;
-}
-
-async function sendAdminMsg() {
-  const input = document.getElementById('admin-input');
-  const text = input.value.trim();
-  if (!text || !activeRef) return;
-  input.value = '';
-
-  const time = new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  try {
-    const res = await fetch(FB_URL + '/chats/' + activeRef + '/messages.json', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ role:'admin', text, time, ts: Date.now() })
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    appendMsg('admin', text, time);
-  } catch(e) { showToast('Failed to send: ' + e.message); }
-}
-
-function setStatus(ref, status) {
-  const o = orders.find(x => x.ref === ref);
-  if (!o) return;
-  o.status = status;
-  saveOrders();
-  renderList();
-  updateBadge();
-  selectOrder(ref);
-  showToast('Marked as ' + status);
-}
-
-function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
-}
-</script>
-
-<script>
-/* ================= PRODUCTS MANAGER ================= */
-let allProducts = [];
-let pfImages = []; // images currently attached in the open form (base64 data URLs)
-
-async function loadProducts() {
-  const grid = document.getElementById('products-grid');
-
-  let cached;
-  try { cached = JSON.parse(localStorage.getItem('ll_products_cache') || 'null'); } catch(e) { cached = null; }
-  if (cached && cached.length) {
-    allProducts = cached;
-    renderProductsGrid();
-  } else {
-    grid.innerHTML = '<div class="empty-products">Loading products…</div>';
-  }
-
+  let products;
   try {
     const res = await fetch(FB_URL + '/products.json');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
-    allProducts = data ? Object.values(data).sort((a,b) => (b.id||0) - (a.id||0)) : [];
-    try { localStorage.setItem('ll_products_cache', JSON.stringify(allProducts)); } catch(e) {}
+    products = data ? Object.values(data) : [];
   } catch(e) {
-    if (!cached || !cached.length) {
-      grid.innerHTML = '<div class="empty-products">Could not load products: ' + esc(e.message) + '</div>';
-    }
-    return;
-  }
-  renderProductsGrid();
-}
-
-function renderProductsGrid() {
-  const grid = document.getElementById('products-grid');
-  document.getElementById('product-count').textContent = allProducts.length ? '(' + allProducts.length + ')' : '';
-  if (!allProducts.length) {
-    grid.innerHTML = '<div class="empty-products">No products added yet. Click "+ Add Product" to add your first one.</div>';
-    return;
-  }
-  grid.innerHTML = allProducts.map(p => {
-    const img = (p.images && p.images.length)
-      ? `<img src="${p.images[0]}" alt="${esc(p.name)}">`
-      : `<span>${esc(p.emoji || '📦')}</span>`;
-    return `
-      <div class="pcard">
-        <div class="pcard-img">${img}</div>
-        <div class="pcard-body">
-          <div class="pcard-cat">${esc(p.category)} · Grade ${esc(p.grade)}</div>
-          <div class="pcard-name">${esc(p.name)}</div>
-          <div class="pcard-price">$${Number(p.price).toLocaleString()} ${esc(p.currency||'USD')}</div>
-          <div class="pcard-stock">Stock: ${p.stock != null ? p.stock : '—'}</div>
-          <div class="pcard-actions">
-            <button class="pc-edit" onclick="editProduct(${p.id})">Edit</button>
-            <button class="pc-del" onclick="deleteProduct(${p.id})">Delete</button>
-          </div>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-function openProductModal(product) {
-  pfImages = [];
-  document.getElementById('product-modal-title').textContent = product ? 'Edit Product' : 'Add Product';
-  document.getElementById('pf-id').value = product ? product.id : '';
-  document.getElementById('pf-name').value = product ? product.name : '';
-  document.getElementById('pf-category').value = product ? product.category : 'phone';
-  document.getElementById('pf-grade').value = product ? product.grade : 'A';
-  document.getElementById('pf-price').value = product ? product.price : '';
-  document.getElementById('pf-currency').value = product ? (product.currency || 'USD') : 'USD';
-  document.getElementById('pf-emoji').value = product ? (product.emoji || '📦') : '📦';
-  document.getElementById('pf-stock').value = product ? (product.stock != null ? product.stock : 1) : 1;
-  document.getElementById('pf-specs').value = product ? (product.specs || '') : '';
-  document.getElementById('pf-includes').value = product ? (product.includes || '') : '';
-  document.getElementById('pf-featured').checked = product ? !!product.featured : false;
-  if (product && product.images) pfImages = [...product.images];
-  renderImgPreview();
-  document.getElementById('product-modal-overlay').classList.add('open');
-}
-
-function closeProductModal() {
-  document.getElementById('product-modal-overlay').classList.remove('open');
-}
-
-function editProduct(id) {
-  const p = allProducts.find(x => x.id === id);
-  if (p) openProductModal(p);
-}
-
-async function deleteProduct(id) {
-  if (!confirm('Delete this product? This cannot be undone.')) return;
-  try {
-    const res = await fetch(await authedUrl('/products/' + id + '.json'), { method: 'DELETE' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    allProducts = allProducts.filter(p => p.id !== id);
-    try { localStorage.setItem('ll_products_cache', JSON.stringify(allProducts)); } catch(e) {}
-    renderProductsGrid();
-    showToast('Product deleted');
-  } catch(e) { showToast('Failed to delete: ' + e.message); }
-}
-
-const CLOUDINARY_CLOUD_NAME = 'z3yvdq52';
-const CLOUDINARY_UPLOAD_PRESET = 'laundrylux';
-
-function uploadToCloudinary(file) {
-  return new Promise((resolve, reject) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    fetch('https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD_NAME + '/image/upload', {
-      method: 'POST',
-      body: formData
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.secure_url) resolve(data.secure_url);
-      else reject(new Error(data.error?.message || 'Upload failed'));
-    })
-    .catch(reject);
-  });
-}
-
-function handleFileSelect(event) {
-  const files = Array.from(event.target.files || []);
-  const zone = document.getElementById('pf-upload-zone');
-  const originalText = zone ? zone.innerHTML : '';
-
-  files.forEach(async (file, i) => {
-    const placeholderId = 'uploading-' + Date.now() + '-' + i;
-    pfImages.push({ uploading: true, id: placeholderId });
-    renderImgPreview();
-
-    try {
-      const url = await uploadToCloudinary(file);
-      const idx = pfImages.findIndex(img => img && img.id === placeholderId);
-      if (idx >= 0) pfImages[idx] = url;
-      renderImgPreview();
-    } catch(e) {
-      const idx = pfImages.findIndex(img => img && img.id === placeholderId);
-      if (idx >= 0) pfImages.splice(idx, 1);
-      renderImgPreview();
-      showToast('Could not upload ' + file.name + ': ' + e.message);
-    }
-  });
-  event.target.value = '';
-}
-
-function renderImgPreview() {
-  const strip = document.getElementById('pf-img-preview');
-  strip.innerHTML = pfImages.map((img, i) => {
-    if (img && typeof img === 'object' && img.uploading) {
-      return `<div class="ip-item" style="display:flex;align-items:center;justify-content:center;background:#F1EFEA;font-size:10px;color:var(--muted)">Uploading…</div>`;
-    }
-    return `
-    <div class="ip-item">
-      <img src="${img}">
-      <button class="ip-remove" onclick="removeImg(${i})">✕</button>
-    </div>`;
-  }).join('');
-}
-
-function removeImg(i) {
-  pfImages.splice(i, 1);
-  renderImgPreview();
-}
-
-async function saveProduct() {
-  const name = document.getElementById('pf-name').value.trim();
-  const price = parseFloat(document.getElementById('pf-price').value);
-  if (!name) { showToast('Please enter a product name'); return; }
-  if (isNaN(price) || price < 0) { showToast('Please enter a valid price'); return; }
-  if (pfImages.some(img => img && typeof img === 'object' && img.uploading)) {
-    showToast('Please wait for photos to finish uploading');
+    log('Could not reach Firebase: ' + e.message, 'err');
+    btn.disabled = false;
     return;
   }
 
-  const existingId = document.getElementById('pf-id').value;
-  const id = existingId ? Number(existingId) : Date.now();
+  log('Found ' + products.length + ' product(s).');
+  let totalBefore = 0, totalAfter = 0, changed = 0;
 
-  const product = {
-    id,
-    name,
-    category: document.getElementById('pf-category').value,
-    grade: document.getElementById('pf-grade').value,
-    price,
-    currency: document.getElementById('pf-currency').value.trim() || 'USD',
-    emoji: document.getElementById('pf-emoji').value.trim() || '📦',
-    stock: parseInt(document.getElementById('pf-stock').value) || 0,
-    specs: document.getElementById('pf-specs').value.trim(),
-    includes: document.getElementById('pf-includes').value.trim(),
-    featured: document.getElementById('pf-featured').checked,
-    images: pfImages
-  };
+  for (const p of products) {
+    if (!p.images || !p.images.length) { log('Skipped (no photos): ' + p.name, 'skip'); continue; }
 
-  try {
-    const res = await fetch(await authedUrl('/products/' + id + '.json'), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(product)
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const idx = allProducts.findIndex(p => p.id === id);
-    if (idx >= 0) allProducts[idx] = product; else allProducts.unshift(product);
-    try { localStorage.setItem('ll_products_cache', JSON.stringify(allProducts)); } catch(e) {}
-    renderProductsGrid();
-    closeProductModal();
-    showToast(existingId ? 'Product updated' : 'Product added — it will now appear on your store');
-  } catch(e) {
-    showToast('Failed to save: ' + e.message);
+    let productChanged = false;
+    const newImages = [];
+    for (const img of p.images) {
+      const beforeLen = (img || '').length;
+      totalBefore += beforeLen;
+
+      if (!img || !img.startsWith('data:image')) {
+        // Already a URL (Cloudinary or otherwise) — leave it alone
+        newImages.push(img);
+        totalAfter += beforeLen;
+        continue;
+      }
+
+      try {
+        const blob = dataUrlToBlob(img);
+        const url = await uploadToCloudinary(blob);
+        newImages.push(url);
+        totalAfter += url.length;
+        productChanged = true;
+      } catch(e) {
+        newImages.push(img);
+        totalAfter += beforeLen;
+        log('  Photo upload failed for ' + p.name + ': ' + e.message, 'err');
+      }
+    }
+
+    if (productChanged) {
+      p.images = newImages;
+      try {
+        await fetch(FB_URL + '/products/' + p.id + '.json?auth=' + idToken, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ images: newImages })
+        });
+        log('✓ Migrated: ' + p.name, 'ok');
+        changed++;
+      } catch(e) {
+        log('✗ Failed to save: ' + p.name + ' — ' + e.message, 'err');
+      }
+    } else {
+      log('Already migrated: ' + p.name, 'skip');
+    }
   }
+
+  log('---');
+  log('Done. Migrated ' + changed + ' product(s).');
+  log('Total size: ' + (totalBefore/1024/1024).toFixed(2) + ' MB → ' + (totalAfter/1024).toFixed(1) + ' KB');
+  btn.disabled = false;
+  btn.textContent = 'Run Again';
 }
 </script>
 </body>
