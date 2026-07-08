@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaundryLux — Product</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<style>
+  :root { --dark:#1A1A2E; --accent:#2563EB; --amber:#F59E0B; --off-white:#F8F6F1; --muted:#6B7280; --border:#E5E3DE; --green:#10B981; }
+  * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+  body { background:var(--off-white); color:var(--dark); min-height:100vh; }
+  .topbar { background:var(--dark); padding:16px 20px; display:flex; align-items:center; justify-content:space-between; }
+  .logo { color:#fff; font-weight:700; font-size:18px; text-decoration:none; }
+  .logo span { color:var(--accent); }
+  .back-link { color:rgba(255,255,255,0.6); font-size:13px; text-decoration:none; }
+  .wrap { max-width:900px; margin:0 auto; padding:30px 20px 60px; }
+  .loading, .error { text-align:center; padding:80px 20px; color:var(--muted); }
+  .product-box { display:none; background:#fff; border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+  .product-grid { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+  @media (max-width:700px) { .product-grid { grid-template-columns:1fr; } }
+  .gallery-main { aspect-ratio:1; background:#F1EFEA; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+  .gallery-main img { width:100%; height:100%; object-fit:cover; }
+  .gallery-main span.emoji { font-size:80px; }
+  .grade-badge { position:absolute; top:14px; left:14px; padding:6px 12px; border-radius:999px; font-size:11px; font-weight:800; text-transform:uppercase; }
+  .grade-a { background:#D1FAE5; color:#065F46; }
+  .grade-b { background:#FEF3C7; color:#92400E; }
+  .grade-c { background:#FEE2E2; color:#991B1B; }
+  .thumb-row { display:flex; gap:8px; padding:12px; overflow-x:auto; }
+  .thumb-row img { width:56px; height:56px; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid transparent; flex-shrink:0; }
+  .thumb-row img.active { border-color:var(--accent); }
+  .info { padding:32px; display:flex; flex-direction:column; }
+  .cat { font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:700; margin-bottom:8px; }
+  .pname { font-size:26px; font-weight:800; margin-bottom:10px; line-height:1.2; }
+  .pspecs { color:var(--muted); font-size:14px; margin-bottom:16px; }
+  .pincludes { color:var(--green); font-size:13.5px; font-weight:600; margin-bottom:20px; }
+  .pprice { font-size:32px; font-weight:800; color:var(--accent); margin-bottom:4px; }
+  .pstock { font-size:13px; color:var(--muted); margin-bottom:24px; }
+  .order-btn { background:var(--accent); color:#fff; border:none; border-radius:10px; padding:16px; font-size:16px; font-weight:700; cursor:pointer; text-decoration:none; text-align:center; display:block; }
+  .view-all { text-align:center; margin-top:16px; }
+  .view-all a { color:var(--muted); font-size:13px; text-decoration:none; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="index.html" class="logo">Laundry<span>Lux</span></a>
+  <a href="index.html" class="back-link">← Full store</a>
+</div>
+
+<div class="wrap">
+  <div class="loading" id="loading">Loading product…</div>
+  <div class="error" id="error" style="display:none">
+    <p style="font-size:16px;margin-bottom:16px">This item is no longer available.</p>
+    <a href="index.html" style="color:var(--accent);font-weight:600;text-decoration:none">Browse the full store →</a>
+  </div>
+
+  <div class="product-box" id="product-box">
+    <div class="product-grid">
+      <div>
+        <div class="gallery-main" id="gallery-main"></div>
+        <div class="thumb-row" id="thumb-row"></div>
+      </div>
+      <div class="info">
+        <div class="cat" id="p-cat"></div>
+        <div class="pname" id="p-name"></div>
+        <div class="pspecs" id="p-specs"></div>
+        <div class="pincludes" id="p-includes"></div>
+        <div class="pprice" id="p-price"></div>
+        <div class="pstock" id="p-stock"></div>
+        <a href="#" class="order-btn" id="order-btn">Order Now →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const FB_URL = 'https://laundrylux-f47d7-default-rtdb.firebaseio.com';
+
+function getProductId() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get('id')) return params.get('id');
+  if (params.get('product')) return params.get('product');
+  const hashMatch = window.location.hash.match(/(?:id|product)=([^&]+)/);
+  if (hashMatch) return hashMatch[1];
+  return null;
+}
+
+function gradeClass(g) { return g==='A'?'grade-a':g==='B'?'grade-b':'grade-c'; }
+function gradeLabel(g) { return g==='A'?'Grade A — Like New':g==='B'?'Grade B — Good':'Grade C — Functional'; }
+
+async function loadProduct() {
+  const id = getProductId();
+  const loading = document.getElementById('loading');
+  const errorBox = document.getElementById('error');
+  const box = document.getElementById('product-box');
+
+  if (!id) {
+    loading.style.display = 'none';
+    errorBox.style.display = 'block';
+    return;
+  }
+
+  try {
+    const res = await fetch(FB_URL + '/products/' + id + '.json');
+    const p = await res.json();
+    if (!p || !p.name) throw new Error('not found');
+
+    document.getElementById('p-cat').textContent = p.category || '';
+    document.getElementById('p-name').textContent = p.name;
+    document.getElementById('p-specs').textContent = p.specs || '';
+    document.getElementById('p-includes').textContent = p.includes || '';
+    document.getElementById('p-price').textContent = '$' + Number(p.price).toLocaleString() + ' ' + (p.currency || 'USD');
+    document.getElementById('p-stock').textContent = p.stock != null ? ('Stock: ' + p.stock) : '';
+
+    const gallery = document.getElementById('gallery-main');
+    const images = (p.images && p.images.length) ? p.images : [];
+
+    function setMain(src) {
+      gallery.innerHTML = '<span class="grade-badge ' + gradeClass(p.grade) + '">' + gradeLabel(p.grade) + '</span>' +
+        (src ? '<img src="' + src + '" alt="' + p.name.replace(/"/g,'') + '">' : '<span class="emoji">' + (p.emoji || '📦') + '</span>');
+    }
+    setMain(images[0]);
+
+    const thumbRow = document.getElementById('thumb-row');
+    if (images.length > 1) {
+      thumbRow.innerHTML = images.map(function(img, i) {
+        return '<img src="' + img + '" class="' + (i===0?'active':'') + '" data-src="' + img + '">';
+      }).join('');
+      Array.from(thumbRow.querySelectorAll('img')).forEach(function(thumb) {
+        thumb.addEventListener('click', function() {
+          thumbRow.querySelectorAll('img').forEach(function(t){ t.classList.remove('active'); });
+          thumb.classList.add('active');
+          setMain(thumb.getAttribute('data-src'));
+        });
+      });
+    }
+
+    const orderBtn = document.getElementById('order-btn');
+    orderBtn.href = 'index.html#product=' + id;
+
+    loading.style.display = 'none';
+    box.style.display = 'block';
+  } catch (e) {
+    loading.style.display = 'none';
+    errorBox.style.display = 'block';
+  }
+}
+loadProduct();
+</script>
+</body>
+</html>
