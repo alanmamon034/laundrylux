@@ -776,7 +776,13 @@ async function saveProduct() {
   }
 
   const existingId = document.getElementById('pf-id').value;
-  const id = existingId ? Number(existingId) : Date.now();
+  let id;
+  if (existingId) {
+    id = Number(existingId);
+  } else {
+    const usedIds = allProducts.map(p => p.id).filter(n => typeof n === 'number');
+    id = usedIds.length ? Math.max(...usedIds) + 1 : 1;
+  }
 
   const product = {
     id,
