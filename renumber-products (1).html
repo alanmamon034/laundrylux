@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LaundryLux — Renumber Product IDs</title>
+<style>
+  :root { --dark:#1A1A2E; --accent:#2563EB; --green:#10B981; --red:#EF4444; --muted:#6B7280; --border:#E5E3DE; }
+  * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
+  body { background:#F8F6F1; color:var(--dark); padding:40px 20px; }
+  .box { max-width:640px; margin:0 auto; background:#fff; border:1px solid var(--border); border-radius:14px; padding:28px 30px; }
+  h1 { font-size:20px; margin-bottom:8px; }
+  p { font-size:14px; color:var(--muted); line-height:1.5; margin-bottom:16px; }
+  button { background:var(--accent); color:#fff; border:none; border-radius:9px; padding:12px 20px; font-size:14px; font-weight:700; cursor:pointer; }
+  button:disabled { background:#9CA3AF; cursor:not-allowed; }
+  .log { margin-top:20px; background:#F8F6F1; border-radius:10px; padding:14px 16px; font-family:monospace; font-size:12.5px; max-height:360px; overflow-y:auto; white-space:pre-wrap; }
+  .ok { color:var(--green); } .err { color:var(--red); } .skip { color:var(--muted); }
+  .badge { display:inline-block; background:#FEF3C7; color:#92400E; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px; margin-bottom:14px; }
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="badge">One-time tool — safe to delete after use</div>
+  <h1>Renumber long product IDs</h1>
+  <p>This gives any product with a long timestamp-style ID (like 1782964276744) a clean, short number instead — matching your original products (20, 27, 30, etc). Photos and all other data stay exactly the same. Safe to run more than once.</p>
+  <div id="login-section">
+    <input type="email" id="login-email" placeholder="Admin email" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:10px 12px;font-size:14px;outline:none;margin-bottom:8px;box-sizing:border-box">
+    <input type="password" id="login-pw" placeholder="Password" style="width:100%;border:1.5px solid #E5E3DE;border-radius:8px;padding:10px 12px;font-size:14px;outline:none;margin-bottom:10px;box-sizing:border-box">
+    <button onclick="login()" style="width:100%">Sign in to continue</button>
+    <div id="login-error" style="display:none;color:#EF4444;font-size:12px;margin-top:8px">Incorrect email or password.</div>
+  </div>
+  <div id="run-section" style="display:none">
+    <button id="run-btn" onclick="runRenumber()">Renumber Long IDs</button>
+  </div>
+  <div class="log" id="log">Sign in above to begin.</div>
+</div>
+
+<script>
+const FB_URL = 'https://laundrylux-f47d7-default-rtdb.firebaseio.com';
+const FIREBASE_API_KEY = 'AIzaSyAgqZWNc1f-wRufI7xdezh5rxrY5eT9_kw';
+const AUTH_SIGNIN_URL = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + FIREBASE_API_KEY;
+const LONG_ID_THRESHOLD = 100000; // real short ids are 20-99 range; anything above this is a timestamp-style id
+let idToken = '';
+
+async function login() {
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-pw').value;
+  const error = document.getElementById('login-error');
+  error.style.display = 'none';
+  try {
+    const res = await fetch(AUTH_SIGNIN_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, returnSecureToken: true })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error();
+    idToken = data.idToken;
+    document.getElementById('login-section').style.display = 'none';
+    document.getElementById('run-section').style.display = 'block';
+    document.getElementById('log').textContent = 'Signed in. Ready to start.';
+  } catch(e) {
+    error.style.display = 'block';
+  }
+}
+
+function log(msg, cls) {
+  const el = document.getElementById('log');
+  const line = document.createElement('div');
+  if (cls) line.className = cls;
+  line.textContent = msg;
+  el.appendChild(line);
+  el.scrollTop = el.scrollHeight;
+}
+
+async function runRenumber() {
+  const btn = document.getElementById('run-btn');
+  btn.disabled = true;
+  document.getElementById('log').innerHTML = '';
+  log('Fetching current products…');
+
+  let products;
+  try {
+    const res = await fetch(FB_URL + '/products.json');
+    const data = await res.json();
+    products = data ? Object.values(data) : [];
+  } catch(e) {
+    log('Could not reach Firebase: ' + e.message, 'err');
+    btn.disabled = false;
+    return;
+  }
+
+  const shortIds = products.filter(p => p.id < LONG_ID_THRESHOLD).map(p => p.id);
+  let nextId = shortIds.length ? Math.max(...shortIds) + 1 : 1;
+
+  const longIdProducts = products.filter(p => p.id >= LONG_ID_THRESHOLD);
+  if (!longIdProducts.length) {
+    log('No long-ID products found — nothing to do.');
+    btn.disabled = false;
+    return;
+  }
+
+  log('Found ' + longIdProducts.length + ' product(s) with long IDs. Next clean ID starts at ' + nextId + '.');
+
+  for (const p of longIdProducts) {
+    const oldId = p.id;
+    const newId = nextId++;
+    const updated = { ...p, id: newId };
+
+    try {
+      await fetch(FB_URL + '/products/' + newId + '.json?auth=' + idToken, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated)
+      });
+      await fetch(FB_URL + '/products/' + oldId + '.json?auth=' + idToken, { method: 'DELETE' });
+      log('✓ ' + p.name + ':  ' + oldId + '  →  ' + newId, 'ok');
+    } catch(e) {
+      log('✗ Failed for ' + p.name + ': ' + e.message, 'err');
+    }
+  }
+
+  log('---');
+  log('Done. Share links for these products will now use their new short IDs.');
+  btn.disabled = false;
+  btn.textContent = 'Run Again';
+}
+</script>
+</body>
+</html>
